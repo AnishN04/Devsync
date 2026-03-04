@@ -1,0 +1,696 @@
+# 🎨 DevSync — Frontend Architecture & Structure
+
+> **Stack:** React · React Router · Axios · Socket.io Client · Context API · TailwindCSS  
+> **Build with:** Google AI Studio · Lovable · Vite
+
+---
+
+## 📁 Folder Structure
+
+```
+client/
+├── public/
+│   └── favicon.ico
+│
+├── src/
+│   ├── api/
+│   │   ├── axios.js                  # Axios instance with interceptors
+│   │   ├── auth.api.js               # login, register, refresh, logout calls
+│   │   ├── project.api.js            # CRUD calls for projects
+│   │   ├── task.api.js               # CRUD calls for tasks
+│   │   ├── member.api.js             # Add/remove member calls
+│   │   └── ai.api.js                 # AI suggestion API call
+│   │
+│   ├── assets/
+│   │   └── logo.svg
+│   │
+│   ├── components/
+│   │   ├── layout/
+│   │   │   ├── Navbar.jsx             # Top navigation bar
+│   │   │   ├── Sidebar.jsx            # Side navigation (role-aware)
+│   │   │   └── ProtectedRoute.jsx     # Guards auth-required routes
+│   │   │
+│   │   ├── auth/
+│   │   │   ├── LoginForm.jsx
+│   │   │   └── RegisterForm.jsx
+│   │   │
+│   │   ├── projects/
+│   │   │   ├── ProjectCard.jsx
+│   │   │   ├── ProjectList.jsx
+│   │   │   └── CreateProjectModal.jsx
+│   │   │
+│   │   ├── tasks/
+│   │   │   ├── TaskCard.jsx
+│   │   │   ├── KanbanBoard.jsx        # Todo → In Progress → Done columns
+│   │   │   ├── TaskModal.jsx          # Create/Edit task form
+│   │   │   └── TaskFilters.jsx        # Filter by priority, assignee
+│   │   │
+│   │   ├── members/
+│   │   │   ├── MemberList.jsx
+│   │   │   ├── MemberAvatar.jsx       # Online presence indicator dot
+│   │   │   └── AddMemberModal.jsx     # Manager/Admin only
+│   │   │
+│   │   ├── ai/
+│   │   │   └── AISuggestPanel.jsx     # Prompt → AI subtask suggestions
+│   │   │
+│   │   ├── analytics/
+│   │   │   ├── TaskCompletionChart.jsx  # Recharts bar/pie chart
+│   │   │   └── ProjectHealthCard.jsx
+│   │   │
+│   │   ├── notifications/
+│   │   │   ├── NotificationBell.jsx   # Bell icon with unread count badge
+│   │   │   └── NotificationDropdown.jsx # List of real-time notifications
+│   │   │
+│   │   └── ui/
+│   │       ├── Button.jsx
+│   │       ├── Modal.jsx
+│   │       ├── Badge.jsx              # Status/Priority badges
+│   │       ├── Avatar.jsx
+│   │       └── Spinner.jsx
+│   │
+│   ├── context/
+│   │   ├── AuthContext.jsx            # user, token, login(), logout()
+│   │   ├── SocketContext.jsx          # socket instance, connection state
+│   │   └── ProjectContext.jsx         # active project state
+│   │
+│   ├── hooks/
+│   │   ├── useAuth.js                 # Consume AuthContext
+│   │   ├── useSocket.js               # Consume SocketContext
+│   │   ├── useProjects.js             # Fetch + manage projects
+│   │   ├── useTasks.js                # Fetch + manage tasks
+│   │   ├── useNotifications.js        # Real-time notification state
+│   │   └── usePresence.js             # Online/offline team presence state
+│   │
+│   ├── pages/
+│   │   ├── LoginPage.jsx
+│   │   ├── RegisterPage.jsx
+│   │   ├── DashboardPage.jsx          # Overview of all projects
+│   │   ├── ProjectPage.jsx            # Kanban board + members + presence
+│   │   ├── AnalyticsPage.jsx          # Charts and stats
+│   │   ├── SettingsPage.jsx           # Admin only: manage users
+│   │   └── NotFoundPage.jsx
+│   │
+│   ├── utils/
+│   │   ├── tokenStorage.js            # Save/clear JWT in localStorage
+│   │   ├── roleGuard.js               # Helper: hasPermission(role, action)
+│   │   └── formatDate.js
+│   │
+│   ├── App.jsx                        # Route definitions
+│   ├── main.jsx                       # React entry point
+│   └── index.css                      # Tailwind base styles
+│
+├── .env
+├── index.html
+├── vite.config.js
+└── package.json
+```
+
+---
+
+## 🔀 Routing Structure (`App.jsx`)
+
+```jsx
+import { Routes, Route } from 'react-router-dom';
+import ProtectedRoute from './components/layout/ProtectedRoute';
+
+export default function App() {
+  return (
+    <Routes>
+      {/* Public routes */}
+      <Route path="/login"    element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+
+      {/* Protected routes — require valid JWT */}
+      <Route element={<ProtectedRoute />}>
+        <Route path="/"             element={<DashboardPage />} />
+        <Route path="/projects/:id" element={<ProjectPage />} />
+        <Route path="/analytics"    element={<AnalyticsPage />} />
+
+        {/* Admin-only route */}
+        <Route element={<ProtectedRoute requiredRole="Admin" />}>
+          <Route path="/settings"   element={<SettingsPage />} />
+        </Route>
+      </Route>
+
+      <Route path="*" element={<NotFoundPage />} />
+    </Routes>
+  );
+}
+```
+
+---
+
+## 🔐 Auth Context (`context/AuthContext.jsx`)
+
+```jsx
+import { createContext, useState } from 'react';
+import { loginUser, logoutUser } from '../api/auth.api';
+
+export const AuthContext = createContext();
+
+export const AuthProvider = ({ children }) => {
+  const [user, setUser]               = useState(null);
+  const [accessToken, setAccessToken] = useState(
+    () => localStorage.getItem('accessToken')
+  );
+
+  const login = async (email, password) => {
+    const data = await loginUser(email, password);
+    localStorage.setItem('accessToken',  data.accessToken);
+    localStorage.setItem('refreshToken', data.refreshToken);
+    setAccessToken(data.accessToken);
+    setUser(data.user);
+  };
+
+  const logout = async () => {
+    await logoutUser();
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    setAccessToken(null);
+    setUser(null);
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, accessToken, login, logout, isAuthenticated: !!accessToken }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+```
+
+---
+
+## 🔌 Socket Context (`context/SocketContext.jsx`)
+
+Manages the Socket.io connection lifecycle — connects on login, disconnects on logout, and makes the socket instance available globally.
+
+```jsx
+import { createContext, useEffect, useState } from 'react';
+import { io } from 'socket.io-client';
+import { useAuth } from '../hooks/useAuth';
+
+export const SocketContext = createContext();
+
+export const SocketProvider = ({ children }) => {
+  const { accessToken } = useAuth();
+  const [socket, setSocket]       = useState(null);
+  const [connected, setConnected] = useState(false);
+
+  useEffect(() => {
+    if (!accessToken) return;
+
+    // Connect to server with JWT in handshake
+    const newSocket = io(import.meta.env.VITE_API_BASE_URL, {
+      auth: { token: accessToken }   // picked up by socketAuth middleware
+    });
+
+    newSocket.on('connect',    () => setConnected(true));
+    newSocket.on('disconnect', () => setConnected(false));
+
+    setSocket(newSocket);
+
+    // Cleanup on token change or logout
+    return () => {
+      newSocket.disconnect();
+    };
+  }, [accessToken]);
+
+  return (
+    <SocketContext.Provider value={{ socket, connected }}>
+      {children}
+    </SocketContext.Provider>
+  );
+};
+```
+
+---
+
+## 🌐 Axios Setup (`api/axios.js`)
+
+```js
+import axios from 'axios';
+
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,  // http://localhost:5000/api
+});
+
+// Attach access token to every request
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('accessToken');
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
+// Auto-refresh on 401
+api.interceptors.response.use(
+  (res) => res,
+  async (error) => {
+    const original = error.config;
+    if (error.response?.status === 401 && !original._retry) {
+      original._retry = true;
+      const refreshToken = localStorage.getItem('refreshToken');
+      const { data } = await axios.post(
+        `${import.meta.env.VITE_API_URL}/auth/refresh`,
+        { token: refreshToken }
+      );
+      localStorage.setItem('accessToken', data.accessToken);
+      original.headers.Authorization = `Bearer ${data.accessToken}`;
+      return api(original);  // retry original request
+    }
+    return Promise.reject(error);
+  }
+);
+
+export default api;
+```
+
+---
+
+## 🎭 Role-Based UI Rendering (`utils/roleGuard.js`)
+
+```js
+const permissions = {
+  createProject:  ['Admin', 'Manager'],
+  deleteProject:  ['Admin'],
+  manageMembers:  ['Admin', 'Manager'],
+  createTask:     ['Admin', 'Manager', 'Developer'],
+  deleteTask:     ['Admin', 'Manager'],
+  viewOnly:       ['Admin', 'Manager', 'Developer', 'Viewer'],
+};
+
+export const hasPermission = (userRole, action) => {
+  return permissions[action]?.includes(userRole) ?? false;
+};
+```
+
+Usage inside any component:
+
+```jsx
+const { user } = useAuth();
+
+{hasPermission(user.role, 'manageMembers') && (
+  <Button onClick={openAddMemberModal}>+ Add Member</Button>
+)}
+
+{hasPermission(user.role, 'createProject') && (
+  <Button onClick={openCreateProjectModal}>+ New Project</Button>
+)}
+```
+
+---
+
+## 🪝 Custom Hooks
+
+### `hooks/useSocket.js`
+
+```js
+import { useContext } from 'react';
+import { SocketContext } from '../context/SocketContext';
+
+export const useSocket = () => useContext(SocketContext);
+```
+
+### `hooks/useTasks.js`
+
+Fetches tasks from REST API, then listens for real-time socket updates to keep the Kanban board in sync.
+
+```js
+import { useState, useEffect } from 'react';
+import { getTasks } from '../api/task.api';
+import { useSocket } from './useSocket';
+import EVENTS from '../utils/socketEvents';
+
+export const useTasks = (projectId) => {
+  const [tasks, setTasks]     = useState([]);
+  const [loading, setLoading] = useState(true);
+  const { socket }            = useSocket();
+
+  // Initial fetch from REST API
+  useEffect(() => {
+    const fetchTasks = async () => {
+      const data = await getTasks(projectId);
+      setTasks(data);
+      setLoading(false);
+    };
+    fetchTasks();
+  }, [projectId]);
+
+  // Join the project socket room
+  useEffect(() => {
+    if (!socket) return;
+    socket.emit('joinProject', { projectId });
+    return () => socket.emit('leaveProject', { projectId });
+  }, [socket, projectId]);
+
+  // Listen for real-time task events
+  useEffect(() => {
+    if (!socket) return;
+
+    // Task status changed by a teammate
+    socket.on(EVENTS.TASK_STATUS_CHANGED, ({ taskId, status }) => {
+      setTasks((prev) =>
+        prev.map((t) => (t.id === taskId ? { ...t, status } : t))
+      );
+    });
+
+    // New task created by a teammate
+    socket.on(EVENTS.TASK_CREATED, ({ task }) => {
+      setTasks((prev) => [...prev, task]);
+    });
+
+    // Task deleted by a teammate
+    socket.on(EVENTS.TASK_DELETED, ({ taskId }) => {
+      setTasks((prev) => prev.filter((t) => t.id !== taskId));
+    });
+
+    return () => {
+      socket.off(EVENTS.TASK_STATUS_CHANGED);
+      socket.off(EVENTS.TASK_CREATED);
+      socket.off(EVENTS.TASK_DELETED);
+    };
+  }, [socket]);
+
+  return { tasks, setTasks, loading };
+};
+```
+
+### `hooks/useNotifications.js`
+
+```js
+import { useState, useEffect } from 'react';
+import { useSocket } from './useSocket';
+import EVENTS from '../utils/socketEvents';
+
+export const useNotifications = () => {
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount]     = useState(0);
+  const { socket } = useSocket();
+
+  useEffect(() => {
+    if (!socket) return;
+
+    socket.on(EVENTS.NOTIFICATION_NEW, (notification) => {
+      setNotifications((prev) => [notification, ...prev]);
+      setUnreadCount((prev) => prev + 1);
+    });
+
+    return () => socket.off(EVENTS.NOTIFICATION_NEW);
+  }, [socket]);
+
+  const markAllRead = () => setUnreadCount(0);
+
+  return { notifications, unreadCount, markAllRead };
+};
+```
+
+### `hooks/usePresence.js`
+
+```js
+import { useState, useEffect } from 'react';
+import { useSocket } from './useSocket';
+import EVENTS from '../utils/socketEvents';
+
+export const usePresence = () => {
+  const [onlineUsers, setOnlineUsers] = useState([]);
+  const { socket } = useSocket();
+
+  useEffect(() => {
+    if (!socket) return;
+
+    // Receive full list when joining a project room
+    socket.on(EVENTS.PRESENCE_LIST, (users) => {
+      setOnlineUsers(users);
+    });
+
+    // Teammate came online
+    socket.on(EVENTS.USER_ONLINE, ({ userId, name }) => {
+      setOnlineUsers((prev) => [...prev, { userId, name }]);
+    });
+
+    // Teammate went offline
+    socket.on(EVENTS.USER_OFFLINE, ({ userId }) => {
+      setOnlineUsers((prev) => prev.filter((u) => u.userId !== userId));
+    });
+
+    return () => {
+      socket.off(EVENTS.PRESENCE_LIST);
+      socket.off(EVENTS.USER_ONLINE);
+      socket.off(EVENTS.USER_OFFLINE);
+    };
+  }, [socket]);
+
+  const isOnline = (userId) => onlineUsers.some((u) => u.userId === userId);
+
+  return { onlineUsers, isOnline };
+};
+```
+
+---
+
+## 📡 Socket Event Constants (`utils/socketEvents.js`)
+
+Mirrors the backend `sockets/events.js` — single source of truth on the frontend.
+
+```js
+const EVENTS = {
+  TASK_CREATED:         'task:created',
+  TASK_UPDATED:         'task:updated',
+  TASK_DELETED:         'task:deleted',
+  TASK_STATUS_CHANGED:  'task:statusChanged',
+
+  PROJECT_UPDATED:      'project:updated',
+  MEMBER_ADDED:         'project:memberAdded',
+  MEMBER_REMOVED:       'project:memberRemoved',
+
+  NOTIFICATION_NEW:     'notification:new',
+
+  USER_ONLINE:          'presence:online',
+  USER_OFFLINE:         'presence:offline',
+  PRESENCE_LIST:        'presence:list',
+};
+
+export default EVENTS;
+```
+
+---
+
+## 📋 Pages Overview
+
+### `DashboardPage`
+- Lists all projects the user is a member of
+- Shows project stats: task count, members, progress bar
+- "New Project" button — visible to Admin/Manager only via `hasPermission`
+
+### `ProjectPage`
+- Kanban board: **Todo · In Progress · Done** columns
+- Drag-and-drop task cards (`@dnd-kit/core`)
+- On drag end → emit `task:statusChanged` via socket + call `PUT /api/tasks/:id`
+- Members panel with online presence dots (green = online, grey = offline)
+- AI Suggest panel — describe a feature, get task breakdown
+- Real-time updates: teammate actions reflect instantly without refresh
+
+### `AnalyticsPage`
+- Bar chart: tasks completed per week (Recharts)
+- Pie chart: task status distribution per project
+- Project health score cards
+
+### `SettingsPage` *(Admin only)*
+- View all registered users
+- Change global user roles
+- Delete users
+
+---
+
+## 🔔 Notification Bell Component
+
+```jsx
+// components/notifications/NotificationBell.jsx
+import { useNotifications } from '../../hooks/useNotifications';
+
+export default function NotificationBell() {
+  const { notifications, unreadCount, markAllRead } = useNotifications();
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="relative">
+      <button onClick={() => { setOpen(!open); markAllRead(); }}>
+        🔔
+        {unreadCount > 0 && (
+          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs
+                           rounded-full w-4 h-4 flex items-center justify-center">
+            {unreadCount}
+          </span>
+        )}
+      </button>
+
+      {open && (
+        <div className="absolute right-0 mt-2 w-72 bg-white shadow-lg rounded-lg z-50">
+          {notifications.length === 0
+            ? <p className="p-4 text-gray-500">No notifications</p>
+            : notifications.map((n, i) => (
+                <div key={i} className="p-3 border-b text-sm">
+                  <p>{n.message}</p>
+                  <span className="text-xs text-gray-400">{n.timestamp}</span>
+                </div>
+              ))
+          }
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+---
+
+## 🟢 Member Presence Indicator
+
+```jsx
+// components/members/MemberAvatar.jsx
+import { usePresence } from '../../hooks/usePresence';
+
+export default function MemberAvatar({ user }) {
+  const { isOnline } = usePresence();
+
+  return (
+    <div className="relative inline-block">
+      <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white text-sm font-bold">
+        {user.name[0].toUpperCase()}
+      </div>
+      {/* Green dot if online, grey if offline */}
+      <span className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white
+                        ${isOnline(user.id) ? 'bg-green-400' : 'bg-gray-300'}`} />
+    </div>
+  );
+}
+```
+
+---
+
+## 🤖 AI Suggest Panel (`components/ai/AISuggestPanel.jsx`)
+
+```
+User types: "Build a user authentication system"
+          ↓
+POST /api/ai/suggest
+          ↓
+AI returns subtasks:
+  • Set up bcrypt password hashing
+  • Create JWT token generation util
+  • Build login and register endpoints
+  • Add refresh token rotation
+  • Write auth middleware
+          ↓
+User clicks "+ Add All to Board"
+→ POST /api/tasks for each subtask
+→ socket emits task:created to all project members
+→ Kanban board updates for everyone in real time
+```
+
+---
+
+## 🌊 Full Frontend Data Flow
+
+```
+User drags task card on Kanban board
+          ↓
+onDragEnd handler fires
+          ↓
+1. Optimistic UI update  → setTasks() locally (instant feel)
+2. REST call             → PUT /api/tasks/:id (persists to DB)
+3. Socket emit           → task:statusChanged (tells all teammates)
+          ↓
+All other project members:
+  useTasks hook receives task:statusChanged event
+          ↓
+  setTasks() updates their Kanban board in real time
+```
+
+---
+
+## ⚙️ Environment Variables (`.env`)
+
+```env
+VITE_API_URL=http://localhost:5000/api
+VITE_API_BASE_URL=http://localhost:5000
+```
+
+> `VITE_API_URL` → Axios base URL for REST calls (`/api` included)  
+> `VITE_API_BASE_URL` → Socket.io connection URL (no `/api`)
+
+---
+
+## 📦 All Dependencies
+
+```json
+{
+  "dependencies": {
+    "react":              "^18.2.0",
+    "react-dom":          "^18.2.0",
+    "react-router-dom":   "^6.14.0",
+    "axios":              "^1.4.0",
+    "socket.io-client":   "^4.6.1",
+    "recharts":           "^2.7.2",
+    "@dnd-kit/core":      "^6.0.8",
+    "@dnd-kit/sortable":  "^7.0.2",
+    "tailwindcss":        "^3.3.0",
+    "react-hot-toast":    "^2.4.1",
+    "lucide-react":       "^0.263.1"
+  },
+  "devDependencies": {
+    "vite":               "^4.4.0",
+    "@vitejs/plugin-react": "^4.0.0"
+  }
+}
+```
+
+---
+
+## 🧱 Component Responsibility Principle
+
+```
+Pages             → Fetch data, compose layout, pass props down
+Components        → Receive props, render UI, emit events upward
+Context           → Share global state (auth, socket, active project)
+Hooks             → Reusable data-fetching, socket listeners, state logic
+API layer         → All HTTP calls live here — never inline in components
+utils/socketEvents→ Single source of truth for all event name strings
+```
+
+> Pages are orchestrators. Components are renderers.  
+> Hooks own the logic. The API layer owns the network.  
+> The socket context owns the connection.
+
+---
+
+## 💡 Prompt Template for Google AI Studio / Lovable
+
+Use this when generating components:
+
+```
+My backend is live at: https://devsync.up.railway.app/api
+WebSocket server at:   https://devsync.up.railway.app
+
+Available REST endpoints:
+  POST /auth/login, POST /auth/register
+  GET/POST /projects, GET/PUT/DELETE /tasks
+
+Socket.io events the frontend should listen to:
+  task:statusChanged  → { taskId, status, updatedBy }
+  task:created        → { task }
+  task:deleted        → { taskId }
+  notification:new    → { message, type, timestamp }
+  presence:online     → { userId, name }
+  presence:offline    → { userId }
+
+Roles: Admin, Manager, Developer, Viewer
+Auth: JWT Bearer token stored in localStorage
+
+Build a React Kanban board component (TailwindCSS) with:
+- 3 columns: Todo, In Progress, Done
+- Drag and drop using @dnd-kit/core
+- On drag end: call PUT /api/tasks/:id and emit task:statusChanged
+- TaskCard showing: title, priority badge, assignee avatar with online dot
+- No required props — use hardcoded mock data for preview
+- Export as default component
+```

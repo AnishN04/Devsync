@@ -1,0 +1,182 @@
+# DevSync API — REST Client Test File
+# Install "REST Client" extension by Humao in VS Code
+# Click "Send Request" above any request to run it
+
+@baseUrl = http://localhost:5000/api
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwibmFtZSI6IkFsaWNlIiwiZW1haWwiOiJhbGljZUB0ZXN0LmNvbSIsInJvbGUiOiJBZG1pbiIsImlhdCI6MTc3MjY0MTkxMywiZXhwIjoxNzcyNjQyODEzfQ.tNYOxN_QLaxvOOh0HfLhckEy5Hfsrnkdj9R1ChW8T7o
+
+###############################################
+# AUTH
+###############################################
+
+### 1. Health Check
+GET http://localhost:5000/api/health
+
+###
+
+### 2. Register User
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "name": "Alice",
+  "email": "alice@test.com",
+  "password": "secret123",
+  "role": "Admin"
+}
+
+###
+
+### 3. Login (copy accessToken → paste into @token above)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "alice@test.com",
+  "password": "secret123"
+}
+
+###
+
+### 4. Refresh Access Token
+POST {{baseUrl}}/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzcyNjQxOTEzLCJleHAiOjE3NzMyNDY3MTN9.ixoRR6KuXsuzkP8b0NQZPwhzyaGWOqBnAqudp3xg_Ho"
+}
+
+###
+
+### 5. Logout
+POST {{baseUrl}}/auth/logout
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "refreshToken": "PASTE_REFRESH_TOKEN_HERE"
+}
+
+###############################################
+# PROJECTS
+###############################################
+
+### 6. Get All Projects
+GET {{baseUrl}}/projects
+Authorization: Bearer {{token}}
+
+###
+
+### 7. Create Project
+POST {{baseUrl}}/projects
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "title": "DevSync MVP",
+  "description": "My first DevSync project"
+}
+
+###
+
+### 8. Get Project by ID
+GET {{baseUrl}}/projects/2
+Authorization: Bearer {{token}}
+
+###
+
+### 9. Update Project
+PUT {{baseUrl}}/projects/2
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "title": "DevSync MVP v2",
+  "description": "Updated description"
+}
+
+###
+
+### 10. Delete Project (Admin only)
+DELETE {{baseUrl}}/projects/2
+Authorization: Bearer {{token}}
+
+###############################################
+# TASKS
+###############################################
+
+### 11. Get Tasks (by project)
+GET {{baseUrl}}/tasks?projectId=2
+Authorization: Bearer {{token}}
+
+###
+
+### 12. Create Task
+POST {{baseUrl}}/tasks
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "projectId": 2,
+  "title": "Build Kanban board UI",
+  "description": "Drag-and-drop board with columns",
+  "priority": "High",
+  "status": "Todo"
+}
+
+###
+
+### 13. Update Task
+PUT {{baseUrl}}/tasks/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "status": "In Progress",
+  "priority": "High"
+}
+
+###
+
+### 14. Delete Task (Admin/Manager only)
+DELETE {{baseUrl}}/tasks/1
+Authorization: Bearer {{token}}
+
+###############################################
+# MEMBERS
+###############################################
+
+### 15. Get Project Members
+GET {{baseUrl}}/members/2
+Authorization: Bearer {{token}}
+
+###
+
+### 16. Add Member to Project
+POST {{baseUrl}}/members/2
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "userId": 2,
+  "role": "Developer"
+}
+
+###
+
+### 17. Remove Member from Project
+DELETE {{baseUrl}}/members/2/2
+Authorization: Bearer {{token}}
+
+###############################################
+# AI (requires GEMINI_API_KEY in .env)
+###############################################
+
+### 18. AI Task Suggestions
+POST {{baseUrl}}/ai/suggest
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "description": "Implement user authentication with OAuth and JWT tokens"
+}
