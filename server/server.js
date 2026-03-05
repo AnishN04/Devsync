@@ -11,6 +11,7 @@ const projectRoutes = require('./routes/project.routes');
 const taskRoutes = require('./routes/task.routes');
 const memberRoutes = require('./routes/member.routes');
 const aiRoutes = require('./routes/ai.routes');
+const analyticsRoutes = require('./routes/analytics.routes');
 const errorHandler = require('./middleware/errorHandler');
 const initSockets = require('./sockets/index');
 
@@ -18,12 +19,14 @@ const app = express();
 const server = http.createServer(app);   // wrap Express in HTTP server
 const io = new Server(server, {
     cors: {
-        origin: process.env.CLIENT_URL || 'http://localhost:5173',
+        origin: ['http://localhost:5173', 'http://localhost:3000'],
         methods: ['GET', 'POST'],
     },
 });
 
-app.use(cors());
+app.use(cors({
+    origin: ['http://localhost:5173', 'http://localhost:3000']
+}));
 app.use(express.json());
 
 // Make io accessible inside REST controllers via req.app.get('io')
@@ -38,6 +41,7 @@ app.use('/api/projects', projectRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/members', memberRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // Global error handler (must be last)
 app.use(errorHandler);

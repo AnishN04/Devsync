@@ -3,8 +3,7 @@
 # Click "Send Request" above any request to run it
 
 @baseUrl = http://localhost:5000/api
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwibmFtZSI6IkFsaWNlIiwiZW1haWwiOiJhbGljZUB0ZXN0LmNvbSIsInJvbGUiOiJBZG1pbiIsImlhdCI6MTc3MjY0MTkxMywiZXhwIjoxNzcyNjQyODEzfQ.tNYOxN_QLaxvOOh0HfLhckEy5Hfsrnkdj9R1ChW8T7o
-
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwibmFtZSI6IlN1cGVyIEFkbWluIiwiZW1haWwiOiJzYWRtaW5AZGV2c3luYy5jb20iLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE3NzI2ODk1MzQsImV4cCI6MTc3MjY5MDQzNH0.Wk43eTSvSn97-VZaSzMI3ZoMP_USyGQokcqFNdhPpp4
 ###############################################
 # AUTH
 ###############################################
@@ -19,9 +18,9 @@ POST {{baseUrl}}/auth/register
 Content-Type: application/json
 
 {
-  "name": "Alice",
-  "email": "alice@test.com",
-  "password": "secret123",
+  "name": "Super Admin",
+  "email": "sadmin@devsync.com",
+  "password": "admin123",
   "role": "Admin"
 }
 
@@ -32,8 +31,8 @@ POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-  "email": "alice@test.com",
-  "password": "secret123"
+  "email": "sadmin@devsync.com",
+  "password": "admin123"
 }
 
 ###
@@ -43,7 +42,7 @@ POST {{baseUrl}}/auth/refresh
 Content-Type: application/json
 
 {
-  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzcyNjQxOTEzLCJleHAiOjE3NzMyNDY3MTN9.ixoRR6KuXsuzkP8b0NQZPwhzyaGWOqBnAqudp3xg_Ho"
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzcyNjg5NTM0LCJleHAiOjE3NzMyOTQzMzR9.XD-lmrXKX-xQdHfrNNJo6Lu0B3zyRy4bnhw55y7Q79Q"
 }
 
 ###
@@ -80,13 +79,13 @@ Authorization: Bearer {{token}}
 ###
 
 ### 8. Get Project by ID
-GET {{baseUrl}}/projects/2
+GET {{baseUrl}}/projects/1
 Authorization: Bearer {{token}}
 
 ###
 
 ### 9. Update Project
-PUT {{baseUrl}}/projects/2
+PUT {{baseUrl}}/projects/1
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
@@ -98,7 +97,7 @@ Authorization: Bearer {{token}}
 ###
 
 ### 10. Delete Project (Admin only)
-DELETE {{baseUrl}}/projects/2
+DELETE {{baseUrl}}/projects/1
 Authorization: Bearer {{token}}
 
 ###############################################
@@ -106,7 +105,7 @@ Authorization: Bearer {{token}}
 ###############################################
 
 ### 11. Get Tasks (by project)
-GET {{baseUrl}}/tasks?projectId=2
+GET {{baseUrl}}/tasks?projectId=1
 Authorization: Bearer {{token}}
 
 ###
@@ -117,7 +116,7 @@ Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
-  "projectId": 2,
+  "projectId": 1,
   "title": "Build Kanban board UI",
   "description": "Drag-and-drop board with columns",
   "priority": "High",
@@ -147,13 +146,13 @@ Authorization: Bearer {{token}}
 ###############################################
 
 ### 15. Get Project Members
-GET {{baseUrl}}/members/2
+GET {{baseUrl}}/members/1
 Authorization: Bearer {{token}}
 
 ###
 
 ### 16. Add Member to Project
-POST {{baseUrl}}/members/2
+POST {{baseUrl}}/members/1
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
@@ -165,7 +164,7 @@ Authorization: Bearer {{token}}
 ###
 
 ### 17. Remove Member from Project
-DELETE {{baseUrl}}/members/2/2
+DELETE {{baseUrl}}/members/1/2
 Authorization: Bearer {{token}}
 
 ###############################################

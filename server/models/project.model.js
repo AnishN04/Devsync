@@ -3,7 +3,15 @@ const { query } = require('../config/db');
 // All projects where user is owner OR a member
 const findForUser = async (userId) => {
     const { rows } = await query(
-        `SELECT DISTINCT p.* FROM projects p
+        `SELECT DISTINCT p.*, 
+        (SELECT COUNT(*) FROM project_members pm2 WHERE pm2.project_id = p.id) as members,
+        (SELECT 
+            CASE 
+                WHEN COUNT(t.id) = 0 THEN 0 
+                ELSE ROUND((COUNT(CASE WHEN t.status = 'Done' THEN 1 END) * 100.0) / COUNT(t.id)) 
+            END 
+         FROM tasks t WHERE t.project_id = p.id) as progress
+     FROM projects p
      LEFT JOIN project_members pm ON pm.project_id = p.id
      WHERE p.owner_id = $1 OR pm.user_id = $1
      ORDER BY p.created_at DESC`,
@@ -13,7 +21,18 @@ const findForUser = async (userId) => {
 };
 
 const findById = async (id) => {
-    const { rows } = await query('SELECT * FROM projects WHERE id = $1', [id]);
+    const { rows } = await query(
+        `SELECT p.*, 
+        (SELECT COUNT(*) FROM project_members pm2 WHERE pm2.project_id = p.id) as members,
+        (SELECT 
+            CASE 
+                WHEN COUNT(t.id) = 0 THEN 0 
+                ELSE ROUND((COUNT(CASE WHEN t.status = 'Done' THEN 1 END) * 100.0) / COUNT(t.id)) 
+            END 
+         FROM tasks t WHERE t.project_id = p.id) as progress
+     FROM projects p WHERE p.id = $1`,
+        [id]
+    );
     return rows[0] || null;
 };
 

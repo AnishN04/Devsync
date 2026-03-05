@@ -1,4 +1,5 @@
 const authService = require('../services/auth.service');
+const { query } = require('../config/db');
 
 const register = async (req, res, next) => {
     try {
@@ -47,4 +48,13 @@ const logout = async (req, res, next) => {
     }
 };
 
-module.exports = { register, login, refresh, logout };
+const getAllUsers = async (req, res, next) => {
+    try {
+        const { rows } = await query('SELECT id, name, email, role, created_at as joined FROM users ORDER BY created_at DESC');
+        res.json(rows);
+    } catch (err) {
+        next(err);
+    }
+};
+
+module.exports = { register, login, refresh, logout, getAllUsers };
