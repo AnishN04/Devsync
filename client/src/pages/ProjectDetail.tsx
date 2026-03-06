@@ -32,7 +32,8 @@ import {
   Trash2,
   UserPlus,
   ChevronDown,
-  Check
+  Check,
+  ArrowDown
 } from 'lucide-react';
 import { cn } from '../utils/helpers';
 import { useTasks, usePresence, useProjects, useAI, useMembers } from '../hooks/useDevSync';
@@ -54,9 +55,17 @@ interface Task {
   tags?: string[];
   comments?: number;
   attachments?: number;
+  github_pr_number?: number;
+  github_pr_url?: string;
+  github_branch?: string;
 }
 
-const TaskCard: React.FC<{ task: Task, isOverlay?: boolean }> = ({ task, isOverlay = false }) => {
+const TaskCard: React.FC<{
+  task: Task,
+  isOverlay?: boolean,
+  onDelete?: (id: string) => void,
+  canDelete?: boolean
+}> = ({ task, isOverlay = false, onDelete, canDelete }) => {
   const {
     attributes,
     listeners,
@@ -94,9 +103,30 @@ const TaskCard: React.FC<{ task: Task, isOverlay?: boolean }> = ({ task, isOverl
         <span className={cn("text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded", priorityColors[task.priority])}>
           {task.priority}
         </span>
-        <button className="text-slate-500 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity">
-          <MoreHorizontal size={14} />
-        </button>
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button
+            className="p-1 text-slate-500 hover:text-white"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              // Trigger more menu (future)
+            }}
+          >
+            <MoreHorizontal size={14} />
+          </button>
+          {canDelete && (
+            <button
+              className="p-1 text-slate-500 hover:text-red-400"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onDelete?.(task.id);
+              }}
+            >
+              <Trash2 size={14} />
+            </button>
+          )}
+        </div>
       </div>
       <h4 className="text-sm font-semibold text-white mb-1 line-clamp-2">{task.title}</h4>
       {task.description && (
@@ -113,6 +143,17 @@ const TaskCard: React.FC<{ task: Task, isOverlay?: boolean }> = ({ task, isOverl
             </>
           )}
         </div>
+        {task.github_pr_url && (
+          <a
+            href={task.github_pr_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="flex items-center gap-1 text-[10px] text-indigo-400 font-bold uppercase tracking-widest hover:text-indigo-300 transition-colors"
+          >
+            PR #{task.github_pr_number}
+          </a>
+        )}
         {task.dueDate && (
           <div className="flex items-center gap-1 text-[10px] text-slate-500 font-bold uppercase tracking-widest">
             <Calendar size={10} />
@@ -130,8 +171,15 @@ const KanbanColumn: React.FC<{
   id: string,
   color: string,
   bgColor: string,
-  onAddTask: (status: string) => void
-}> = ({ title, tasks, id, color, bgColor, onAddTask }) => {
+  onAddTask: (status: string) => void,
+  onDeleteTask: (id: string) => void,
+  canCreate?: boolean,
+  canDelete?: boolean,
+  totalCount?: number,
+  showLoadMore?: boolean,
+  onLoadMore?: () => void,
+  onShowLess?: () => void
+}> = ({ title, tasks, id, color, bgColor, onAddTask, onDeleteTask, canCreate, canDelete, totalCount, showLoadMore, onLoadMore, onShowLess }) => {
   const { setNodeRef } = useDroppable({ id });
 
   return (
@@ -143,7 +191,7 @@ const KanbanColumn: React.FC<{
         <div className="flex items-center gap-2">
           <h3 className="font-heading font-bold text-white uppercase tracking-widest text-sm">{title}</h3>
           <span className="bg-white/10 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-            {tasks.length}
+            {totalCount ?? tasks.length}
           </span>
         </div>
       </div>
@@ -151,16 +199,34 @@ const KanbanColumn: React.FC<{
       <div className="flex-1 overflow-y-auto custom-scrollbar pr-2">
         <SortableContext items={tasks.map(t => t.id.toString())} strategy={verticalListSortingStrategy}>
           {tasks.map(task => (
-            <TaskCard key={task.id} task={task} />
+            <TaskCard key={task.id} task={task} onDelete={onDeleteTask} canDelete={canDelete} />
           ))}
         </SortableContext>
 
-        <button
-          onClick={() => onAddTask(id)}
-          className="w-full py-3 mt-2 border-2 border-dashed border-white/5 rounded-xl text-slate-500 hover:text-indigo-400 hover:border-indigo-500/30 hover:bg-indigo-500/5 transition-all text-sm font-bold flex items-center justify-center gap-2"
-        >
-          <Plus size={16} /> Add Task
-        </button>
+        {showLoadMore ? (
+          <button
+            onClick={onLoadMore}
+            className="w-full py-2 mb-3 bg-white/5 hover:bg-white/10 text-indigo-400 text-[10px] font-black uppercase tracking-[0.2em] rounded-xl flex items-center justify-center gap-2 transition-all group"
+          >
+            Load More <ArrowDown size={12} className="group-hover:translate-y-1 transition-transform" />
+          </button>
+        ) : (onShowLess && (totalCount ?? 0) > 4) && (
+          <button
+            onClick={onShowLess}
+            className="w-full py-2 mb-3 bg-white/5 hover:bg-white/10 text-indigo-400 text-[10px] font-black uppercase tracking-[0.2em] rounded-xl flex items-center justify-center gap-2 transition-all group"
+          >
+            Show Less <ArrowDown size={12} className="group-hover:-translate-y-1 transition-transform rotate-180" />
+          </button>
+        )}
+
+        {canCreate && (
+          <button
+            onClick={() => onAddTask(id)}
+            className="w-full py-3 mt-2 border-2 border-dashed border-white/5 rounded-xl text-slate-500 hover:text-indigo-400 hover:border-indigo-500/30 hover:bg-indigo-500/5 transition-all text-sm font-bold flex items-center justify-center gap-2"
+          >
+            <Plus size={16} /> Add Task
+          </button>
+        )}
       </div>
     </div>
   );
@@ -172,7 +238,7 @@ const ProjectDetail: React.FC = () => {
   const { id } = useParams();
   const { projects, refreshProjects } = useProjects();
   const project = projects.find(p => p.id == id) || { title: '...', progress: 0, members: 0 };
-  const { tasks, setTasks, updateTaskStatus } = useTasks(id);
+  const { tasks, setTasks, updateTaskStatus, deleteTask, createTask } = useTasks(id);
   const { members, removeMember } = useMembers(id);
   const { onlineUsers } = usePresence(id);
   const { user } = useAuth();
@@ -188,8 +254,27 @@ const ProjectDetail: React.FC = () => {
   const [aiPrompt, setAiPrompt] = useState('');
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
   const [isAiLoading, setIsAiLoading] = useState(false);
+  const [doneLimit, setDoneLimit] = useState(4);
   const { suggestTasks } = useAI();
-  const { createTask } = useTasks(id);
+
+  const handleDeleteTask = async (taskId: string) => {
+    console.log('DEBUG: handleDeleteTask called for task:', taskId);
+    // Optimistic update
+    const taskToDelete = tasks.find(t => String(t.id) === String(taskId));
+    setTasks(prev => prev.filter(t => String(t.id) !== String(taskId)));
+
+    try {
+      await deleteTask(taskId);
+      toast.success('Task deleted');
+      refreshProjects(); // Update progress bar
+    } catch (err) {
+      // Revert on fail
+      if (taskToDelete) {
+        setTasks(prev => [...prev, taskToDelete]);
+      }
+      toast.error('Failed to delete task');
+    }
+  };
 
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [newTaskData, setNewTaskData] = useState({
@@ -309,6 +394,12 @@ const ProjectDetail: React.FC = () => {
 
   const activeTask = tasks.find(t => t.id === activeId);
 
+  const isOwner = project.owner_id === user?.id;
+  const isManager = currentUserRole === 'Admin' || currentUserRole === 'Manager' || isOwner;
+  const isDeveloper = currentUserRole === 'Developer';
+  const canCreate = isManager || isDeveloper;
+  const canDelete = isManager;
+
   return (
     <div className="h-[calc(100vh-120px)] flex flex-col">
       <header className="flex items-center justify-between mb-8">
@@ -318,7 +409,14 @@ const ProjectDetail: React.FC = () => {
           </div>
           <div className="flex flex-col flex-1 max-w-xl">
             <div className="flex items-center justify-between">
-              <h1 className="text-2xl font-heading font-extrabold text-white">{project.title}</h1>
+              <div className="flex items-center gap-3">
+                <h1 className="text-2xl font-heading font-extrabold text-white">{project.title}</h1>
+                {project.is_released && (
+                  <span className="bg-emerald-500/10 text-emerald-400 text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded border border-emerald-500/20">
+                    🚀 Released
+                  </span>
+                )}
+              </div>
               <span className="text-xs font-black text-indigo-400 drop-shadow-[0_0_8px_rgba(99,102,241,0.5)]">{project.progress}%</span>
             </div>
 
@@ -358,17 +456,28 @@ const ProjectDetail: React.FC = () => {
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
           >
-            {columns.map(col => (
-              <KanbanColumn
-                key={col.id}
-                id={col.id}
-                title={col.title}
-                color={col.color}
-                bgColor={col.bgColor}
-                tasks={tasks.filter(t => t.status === col.id) as Task[]}
-                onAddTask={handleAddTask}
-              />
-            ))}
+            {columns.map(col => {
+              const allColTasks = tasks.filter(t => t.status === col.id) as Task[];
+              const colTasks = col.id === 'Done' ? allColTasks.slice(0, doneLimit) : allColTasks;
+              return (
+                <KanbanColumn
+                  key={col.id}
+                  id={col.id}
+                  title={col.title}
+                  color={col.color}
+                  bgColor={col.bgColor}
+                  tasks={colTasks}
+                  onAddTask={handleAddTask}
+                  onDeleteTask={handleDeleteTask}
+                  canCreate={canCreate}
+                  canDelete={canDelete}
+                  totalCount={allColTasks.length}
+                  showLoadMore={col.id === 'Done' && allColTasks.length > doneLimit}
+                  onLoadMore={() => setDoneLimit(prev => prev + 4)}
+                  onShowLess={() => setDoneLimit(4)}
+                />
+              );
+            })}
             <DragOverlay dropAnimation={{
               sideEffects: defaultDropAnimationSideEffects({
                 styles: {

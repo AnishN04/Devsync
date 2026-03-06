@@ -6,7 +6,7 @@ const findByEmail = async (email) => {
 };
 
 const findById = async (id) => {
-    const { rows } = await query('SELECT id, name, email, role, created_at FROM users WHERE id = $1', [id]);
+    const { rows } = await query('SELECT id, name, email, role, created_at, github_username FROM users WHERE id = $1', [id]);
     return rows[0] || null;
 };
 

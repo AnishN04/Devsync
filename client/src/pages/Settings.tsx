@@ -14,10 +14,14 @@ import { cn } from '../utils/helpers';
 import toast from 'react-hot-toast';
 import { useAllUsers } from '../hooks/useDevSync';
 import Avatar from '../components/Avatar';
+import api from '../services/axios';
+import { useAuth } from '../contexts/AuthContext';
 
 const Settings: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const { users, isLoading } = useAllUsers();
+  const [editingUserId, setEditingUserId] = useState<number | null>(null);
+  const { users, isLoading, refreshUsers } = useAllUsers();
+  const { user: currentUser } = useAuth();
 
   const roleColors: Record<string, string> = {
     Admin: 'bg-indigo-500/10 text-indigo-400',
@@ -26,9 +30,25 @@ const Settings: React.FC = () => {
     Viewer: 'bg-slate-500/10 text-slate-400',
   };
 
-  const handleDeleteUser = (id: string) => {
-    if (window.confirm('Are you sure you want to delete this user? (Action requires API setup)')) {
-      toast.error('Deletion endpoint not implemented for safety');
+  const handleDeleteUser = async (id: number) => {
+    if (!window.confirm('Are you sure you want to delete this user? This cannot be undone.')) return;
+    try {
+      await api.delete(`/auth/users/${id}`);
+      toast.success('User deleted');
+      refreshUsers();
+    } catch (err) {
+      toast.error('Failed to delete user');
+    }
+  };
+
+  const handleUpdateRole = async (userId: number, newRole: string) => {
+    try {
+      await api.patch(`/auth/users/${userId}/role`, { role: newRole });
+      toast.success(`Role updated to ${newRole}`);
+      setEditingUserId(null);
+      refreshUsers();
+    } catch (err) {
+      toast.error('Failed to update role');
     }
   };
 
@@ -100,13 +120,37 @@ const Settings: React.FC = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 relative">
                         <span className={cn("text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full flex items-center gap-1.5", roleColors[user.role])}>
                           <Shield size={10} /> {user.role}
                         </span>
-                        <button className="p-1 text-slate-600 hover:text-white opacity-0 group-hover:opacity-100 transition-all">
-                          <ChevronDown size={14} />
-                        </button>
+                        {currentUser?.role === 'Admin' && (
+                          <div className="relative">
+                            <button 
+                              onClick={() => setEditingUserId(editingUserId === user.id ? null : user.id)}
+                              className="p-1 text-slate-600 hover:text-white transition-all"
+                            >
+                              <ChevronDown size={14} className={cn(editingUserId === user.id && "rotate-180")} />
+                            </button>
+                            
+                            {editingUserId === user.id && (
+                              <div className="absolute left-0 top-full mt-2 w-32 glass-card border-white/10 z-50 overflow-hidden shadow-xl animate-in fade-in zoom-in-95 duration-200">
+                                {['Admin', 'Manager', 'Developer', 'Viewer'].map(r => (
+                                  <button
+                                    key={r}
+                                    onClick={() => handleUpdateRole(user.id, r)}
+                                    className={cn(
+                                      "w-full px-4 py-2 text-left text-[10px] font-bold uppercase tracking-widest hover:bg-white/5 transition-colors",
+                                      user.role === r ? "text-indigo-400 bg-white/5" : "text-slate-400"
+                                    )}
+                                  >
+                                    {r}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </td>
                     <td className="px-6 py-4">
@@ -116,15 +160,20 @@ const Settings: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                        <button className="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-all">
+                        <button 
+                          className="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-all"
+                          onClick={() => toast('User details feature coming soon')}
+                        >
                           <MoreVertical size={18} />
                         </button>
-                        <button
-                          onClick={() => handleDeleteUser(user.id)}
-                          className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
-                        >
-                          <Trash2 size={18} />
-                        </button>
+                        {currentUser?.role === 'Admin' && currentUser.id !== user.id && (
+                          <button
+                            onClick={() => handleDeleteUser(user.id)}
+                            className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </motion.tr>

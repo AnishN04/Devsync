@@ -66,7 +66,9 @@ const updateTask = async (req, res, next) => {
 
 const deleteTask = async (req, res, next) => {
     try {
-        const deleted = await taskService.deleteTask(Number(req.params.id), req.user.id);
+        console.log('DEBUG: deleteTask params:', { id: req.params.id, userId: req.user.id, userRole: req.user.role });
+        const deleted = await taskService.deleteTask(Number(req.params.id), req.user.id, req.user.role);
+        console.log('DEBUG: deleteTask result:', deleted);
 
         const io = req.app.get('io');
         io.to(EVENTS.PROJECT_ROOM(deleted.project_id)).emit(EVENTS.TASK_DELETED, { taskId: deleted.id });

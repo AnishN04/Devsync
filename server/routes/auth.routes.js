@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const { register, login, refresh, logout } = require('../controllers/auth.controller');
 const verifyToken = require('../middleware/verifyToken');
+const checkRole = require('../middleware/checkRole');
 
 router.post('/register', register);
 router.post('/login', login);
@@ -14,5 +15,11 @@ router.get('/me', verifyToken, (req, res) => {
 
 // Returns all users
 router.get('/users', verifyToken, require('../controllers/auth.controller').getAllUsers);
+
+// Admin only: Delete user
+router.delete('/users/:id', verifyToken, checkRole(['Admin']), require('../controllers/auth.controller').deleteUser);
+
+// Admin only: Update user role
+router.patch('/users/:id/role', verifyToken, checkRole(['Admin']), require('../controllers/auth.controller').updateUserRole);
 
 module.exports = router;

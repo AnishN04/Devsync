@@ -10,7 +10,7 @@ const comparePassword = async (plain, hash) => bcrypt.compare(plain, hash);
 
 const generateAccessToken = (user) =>
     jwt.sign(
-        { id: user.id, name: user.name, email: user.email, role: user.role },
+        { id: user.id, name: user.name, email: user.email, role: user.role, github_username: user.github_username },
         env.JWT_SECRET,
         { expiresIn: env.JWT_EXPIRES_IN }
     );
@@ -65,6 +65,13 @@ const loginUser = async ({ email, password }) => {
     return { accessToken, refreshToken, user: { id: user.id, name: user.name, email: user.email, role: user.role } };
 };
 
+const generateTokens = async (user) => {
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
+    await storeRefreshToken(user.id, refreshToken);
+    return { accessToken, refreshToken };
+};
+
 const refreshAccessToken = async (token) => {
     const stored = await findRefreshToken(token);
     if (!stored) throw Object.assign(new Error('Invalid or expired refresh token'), { status: 403 });
@@ -89,6 +96,7 @@ const logoutUser = async (token) => {
 module.exports = {
     registerUser,
     loginUser,
+    generateTokens,
     refreshAccessToken,
     logoutUser,
 };

@@ -17,7 +17,7 @@ router.post('/', verifyToken, checkRole(['Admin', 'Manager', 'Developer']), crea
 // PUT /api/tasks/:id — Admin, Manager, Developer
 router.put('/:id', verifyToken, checkRole(['Admin', 'Manager', 'Developer']), updateTask);
 
-// DELETE /api/tasks/:id — Admin, Manager
-router.delete('/:id', verifyToken, checkRole(['Admin', 'Manager']), deleteTask);
+// DELETE /api/tasks/:id — Handled by service (Admin, Manager, Owner)
+router.delete('/:id', verifyToken, deleteTask);
 
 module.exports = router;

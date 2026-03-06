@@ -34,7 +34,7 @@ const Login: React.FC = () => {
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-violet-600/20 rounded-full blur-[120px] animate-pulse delay-700" />
       </div>
 
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         className="w-full max-w-md z-10 p-8"
@@ -53,8 +53,8 @@ const Login: React.FC = () => {
               <label className="text-sm font-semibold text-slate-300 ml-1">Email Address</label>
               <div className="relative group">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400 transition-colors" size={18} />
-                <input 
-                  type="email" 
+                <input
+                  type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -71,8 +71,8 @@ const Login: React.FC = () => {
               </div>
               <div className="relative group">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400 transition-colors" size={18} />
-                <input 
-                  type="password" 
+                <input
+                  type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -82,8 +82,8 @@ const Login: React.FC = () => {
               </div>
             </div>
 
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               disabled={isLoading}
               className="w-full btn-primary py-3 flex items-center justify-center gap-2 group"
             >
@@ -105,7 +105,10 @@ const Login: React.FC = () => {
               <span className="relative px-3 bg-bg-card text-xs text-slate-500 uppercase tracking-widest">Or continue with</span>
             </div>
 
-            <button className="w-full bg-white/5 border border-white/10 hover:bg-white/10 text-white font-semibold py-3 rounded-xl flex items-center justify-center gap-3 transition-all">
+            <button
+              onClick={() => window.location.href = 'http://localhost:5000/api/github/auth'}
+              className="w-full bg-white/5 border border-white/10 hover:bg-white/10 text-white font-semibold py-3 rounded-xl flex items-center justify-center gap-3 transition-all"
+            >
               <Github size={20} /> GitHub
             </button>
           </div>

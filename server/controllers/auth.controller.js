@@ -48,6 +48,33 @@ const logout = async (req, res, next) => {
     }
 };
 
+const deleteUser = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        if (Number(id) === req.user.id) {
+            return res.status(400).json({ message: 'You cannot delete yourself' });
+        }
+        await query('DELETE FROM users WHERE id = $1', [id]);
+        res.json({ message: 'User deleted successfully' });
+    } catch (err) {
+        next(err);
+    }
+};
+
+const updateUserRole = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const { role } = req.body;
+        if (!['Admin', 'Manager', 'Developer', 'Viewer'].includes(role)) {
+            return res.status(400).json({ message: 'Invalid role' });
+        }
+        await query('UPDATE users SET role = $1 WHERE id = $2', [role, id]);
+        res.json({ message: 'User role updated successfully' });
+    } catch (err) {
+        next(err);
+    }
+};
+
 const getAllUsers = async (req, res, next) => {
     try {
         const { rows } = await query('SELECT id, name, email, role, created_at as joined FROM users ORDER BY created_at DESC');
@@ -57,4 +84,4 @@ const getAllUsers = async (req, res, next) => {
     }
 };
 
-module.exports = { register, login, refresh, logout, getAllUsers };
+module.exports = { register, login, refresh, logout, getAllUsers, deleteUser, updateUserRole };

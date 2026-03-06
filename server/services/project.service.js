@@ -35,10 +35,14 @@ const updateProject = async (id, updates, userId) => {
 };
 
 const deleteProject = async (id, userId, userRole) => {
-    if (userRole !== 'Admin') throw Object.assign(new Error('Only Admins can delete projects'), { status: 403 });
-    const project = await projectModel.remove(id);
+    const project = await projectModel.findById(id);
     if (!project) throw Object.assign(new Error('Project not found'), { status: 404 });
-    return project;
+
+    if (userRole !== 'Admin' && project.owner_id !== userId) {
+        throw Object.assign(new Error('Only Admins or owners can delete projects'), { status: 403 });
+    }
+    
+    return projectModel.remove(id);
 };
 
 module.exports = { getAllProjects, getProjectById, createProject, updateProject, deleteProject };

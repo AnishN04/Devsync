@@ -9,13 +9,14 @@ import Dashboard from './pages/Dashboard';
 import ProjectDetail from './pages/ProjectDetail';
 import Analytics from './pages/Analytics';
 import Settings from './pages/Settings';
+import AuthCallback from './pages/AuthCallback';
 
 export default function App() {
   return (
     <AuthProvider>
       <SocketProvider>
         <BrowserRouter>
-          <Toaster 
+          <Toaster
             position="top-right"
             toastOptions={{
               className: 'glass !bg-bg-card !text-white !border-white/10',
@@ -25,7 +26,8 @@ export default function App() {
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            
+            <Route path="/auth/callback" element={<AuthCallback />} />
+
             <Route path="/" element={<Layout />}>
               <Route index element={<Dashboard />} />
               <Route path="projects/:id" element={<ProjectDetail />} />
