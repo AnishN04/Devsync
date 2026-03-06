@@ -10,6 +10,7 @@ import ProjectDetail from './pages/ProjectDetail';
 import Analytics from './pages/Analytics';
 import Settings from './pages/Settings';
 import AuthCallback from './pages/AuthCallback';
+import InviteLanding from './pages/InviteLanding';
 
 export default function App() {
   return (
@@ -27,6 +28,7 @@ export default function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/invitations/accept/:token" element={<InviteLanding />} />
 
             <Route path="/" element={<Layout />}>
               <Route index element={<Dashboard />} />

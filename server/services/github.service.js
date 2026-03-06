@@ -2,7 +2,7 @@ const { getOctokit } = require('../config/github');
 
 const getRepos = async (githubToken, orgName) => {
     const octokit = getOctokit(githubToken);
-    
+
     // If orgName is provided, try listing org repos
     if (orgName && orgName !== 'DevSync-Org') {
         try {
@@ -62,10 +62,19 @@ const getRecentCommits = async (githubToken, owner, repoName) => {
     return data;
 };
 
+const searchUsers = async (githubToken, query) => {
+    const octokit = getOctokit(githubToken);
+    const { data } = await octokit.search.users({
+        q: query, per_page: 5
+    });
+    return data.items;
+};
+
 module.exports = {
     getRepos,
     getOrgMembers,
     getRepoContributors,
     getRecentCommits,
-    createRepoWebhook
+    createRepoWebhook,
+    searchUsers
 };

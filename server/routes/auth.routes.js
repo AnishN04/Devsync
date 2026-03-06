@@ -16,6 +16,9 @@ router.get('/me', verifyToken, (req, res) => {
 // Returns all users
 router.get('/users', verifyToken, require('../controllers/auth.controller').getAllUsers);
 
+// Search users
+router.get('/users/search', verifyToken, require('../controllers/auth.controller').searchUsers);
+
 // Admin only: Delete user
 router.delete('/users/:id', verifyToken, checkRole(['Admin']), require('../controllers/auth.controller').deleteUser);
 

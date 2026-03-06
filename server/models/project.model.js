@@ -12,8 +12,9 @@ const findForUser = async (userId) => {
             END 
          FROM tasks t WHERE t.project_id = p.id) as progress
      FROM projects p
-     LEFT JOIN project_members pm ON pm.project_id = p.id
-     WHERE p.owner_id = $1 OR pm.user_id = $1
+     JOIN project_members pm ON pm.project_id = p.id
+     WHERE pm.user_id = $1
+       AND (pm.dashboard_visible IS TRUE OR pm.dashboard_visible IS NULL)
      ORDER BY p.created_at DESC`,
         [userId]
     );

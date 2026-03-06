@@ -155,18 +155,23 @@ export const useMembers = (projectId: string | undefined) => {
     fetchMembers();
   }, [fetchMembers]);
 
-  const addMember = async (userId: string, role: string) => {
+  const addMember = async (githubUsernameOrEmail: string, role: string) => {
+    if (!projectId) return;
     try {
-      await api.post(`/members/${projectId}`, { userId, role });
+      await api.post(`/projects/${projectId}/members`, {
+        userIdentifier: githubUsernameOrEmail,
+        role
+      });
       await fetchMembers();
       toast.success('Member added');
-    } catch {
-      toast.error('Failed to add member');
-      throw new Error('Failed to add member');
+    } catch (error: any) {
+      console.error('Add member err:', error);
+      toast.error(error.response?.data?.message || 'Failed to add member');
+      throw error;
     }
   };
 
-  const removeMember = async (userId: string) => {
+  const removeMember = async (userId: number) => {
     try {
       await api.delete(`/members/${projectId}/${userId}`);
       await fetchMembers();
@@ -177,7 +182,17 @@ export const useMembers = (projectId: string | undefined) => {
     }
   };
 
-  return { members, isLoading, addMember, removeMember, refreshMembers: fetchMembers };
+  const searchGitHubUsers = async (query: string) => {
+    try {
+      const res = await api.get(`/github/search-users?q=${query}`);
+      return res.data;
+    } catch (err) {
+      console.error('Search GitHub users err:', err);
+      return [];
+    }
+  };
+
+  return { members, isLoading, addMember, removeMember, searchGitHubUsers, refreshMembers: fetchMembers };
 };
 
 export const useNotifications = () => {

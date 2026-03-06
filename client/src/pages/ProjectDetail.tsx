@@ -33,7 +33,8 @@ import {
   UserPlus,
   ChevronDown,
   Check,
-  ArrowDown
+  ArrowDown,
+  GripVertical
 } from 'lucide-react';
 import { cn } from '../utils/helpers';
 import { useTasks, usePresence, useProjects, useAI, useMembers } from '../hooks/useDevSync';
@@ -41,6 +42,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
+import api from '../services/axios';
 
 // --- Kanban Components ---
 
@@ -92,31 +94,29 @@ const TaskCard: React.FC<{
       ref={setNodeRef}
       style={style}
       {...attributes}
-      {...listeners}
       className={cn(
-        "glass-card p-4 mb-3 cursor-grab active:cursor-grabbing border-l-4 group",
+        "glass-card p-4 mb-3 border-l-4 group",
         task.priority === 'High' ? 'border-l-red-500' : task.priority === 'Medium' ? 'border-l-amber-500' : 'border-l-slate-500',
         isOverlay && "rotate-2 scale-105 shadow-2xl shadow-indigo-500/20"
       )}
     >
       <div className="flex justify-between items-start mb-2">
-        <span className={cn("text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded", priorityColors[task.priority])}>
-          {task.priority}
-        </span>
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button
-            className="p-1 text-slate-500 hover:text-white"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              // Trigger more menu (future)
-            }}
+        <div className="flex items-center gap-1.5">
+          {/* Dedicated drag handle — only this element captures drag events */}
+          <div
+            {...listeners}
+            className="p-0.5 text-slate-600 hover:text-slate-400 cursor-grab active:cursor-grabbing transition-colors opacity-0 group-hover:opacity-100"
           >
-            <MoreHorizontal size={14} />
-          </button>
+            <GripVertical size={14} />
+          </div>
+          <span className={cn("text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded", priorityColors[task.priority])}>
+            {task.priority}
+          </span>
+        </div>
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           {canDelete && (
             <button
-              className="p-1 text-slate-500 hover:text-red-400"
+              className="p-1 text-slate-500 hover:text-red-400 transition-colors"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -126,6 +126,15 @@ const TaskCard: React.FC<{
               <Trash2 size={14} />
             </button>
           )}
+          <button
+            className="p-1 text-slate-500 hover:text-white transition-colors"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+          >
+            <MoreHorizontal size={14} />
+          </button>
         </div>
       </div>
       <h4 className="text-sm font-semibold text-white mb-1 line-clamp-2">{task.title}</h4>
@@ -239,7 +248,7 @@ const ProjectDetail: React.FC = () => {
   const { projects, refreshProjects } = useProjects();
   const project = projects.find(p => p.id == id) || { title: '...', progress: 0, members: 0 };
   const { tasks, setTasks, updateTaskStatus, deleteTask, createTask } = useTasks(id);
-  const { members, removeMember } = useMembers(id);
+  const { members, removeMember, addMember, searchGitHubUsers, refreshMembers } = useMembers(id);
   const { onlineUsers } = usePresence(id);
   const { user } = useAuth();
   const currentUserRole = user?.role || 'Viewer';
@@ -256,6 +265,9 @@ const ProjectDetail: React.FC = () => {
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [doneLimit, setDoneLimit] = useState(4);
   const { suggestTasks } = useAI();
+  const [githubUsers, setGithubUsers] = useState<any[]>([]);
+  const [isSearchingGithub, setIsSearchingGithub] = useState(false);
+  const [isInviting, setIsInviting] = useState(false);
 
   const handleDeleteTask = async (taskId: string) => {
     console.log('DEBUG: handleDeleteTask called for task:', taskId);
@@ -299,13 +311,56 @@ const ProjectDetail: React.FC = () => {
     }
   };
 
-  const handleInvite = (e: React.FormEvent) => {
+  const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inviteEmail) return;
+    setIsInviting(true);
 
-    toast.success(`Invited ${inviteEmail} as ${inviteRole}`);
-    setInviteEmail('');
-    setIsInviteModalOpen(false);
+    try {
+      // First try to find user by email/username in local DB
+      const searchRes = await api.get(`/auth/users/search?query=${inviteEmail}`);
+      const foundUser = searchRes.data[0];
+
+      if (foundUser) {
+        await api.post(`/members/${id}`, { userId: foundUser.id, role: inviteRole });
+        toast.success(`Added ${foundUser.name} as ${inviteRole}`);
+      } else {
+        // Fallback to sending an email invite
+        if (!inviteEmail.includes('@')) {
+           toast.error('Please enter a valid email address for the invitation');
+           setIsInviting(false);
+           return;
+        }
+        await api.post('/invitations/send', {
+            projectId: id,
+            email: inviteEmail,
+            role: inviteRole
+        });
+        toast.success(`Invitation sent to ${inviteEmail}`);
+      }
+
+      setInviteEmail('');
+      setGithubUsers([]);
+      setIsMembersModalOpen(false);
+      setIsInviteModalOpen(false);
+      refreshMembers();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to send invitation');
+    } finally {
+      setIsInviting(false);
+    }
+  };
+
+  const onSearchGithub = async (val: string) => {
+    setInviteEmail(val);
+    if (val.length < 2) {
+      setGithubUsers([]);
+      return;
+    }
+    setIsSearchingGithub(true);
+    const users = await searchGitHubUsers(val);
+    setGithubUsers(users || []);
+    setIsSearchingGithub(false);
   };
 
   const handleSubmitTask = async (e: React.FormEvent) => {
@@ -437,6 +492,35 @@ const ProjectDetail: React.FC = () => {
           </div>
         </div>
         <div className="flex items-center gap-4 ml-8">
+          {/* Members Pile */}
+          <div
+            onClick={() => setIsMembersModalOpen(true)}
+            className="flex items-center -space-x-3 cursor-pointer group"
+          >
+            {members.slice(0, 3).map((m: any, i: number) => (
+              <div
+                key={m.id}
+                className="w-10 h-10 rounded-xl bg-indigo-600/30 border-2 border-bg-dark flex items-center justify-center text-indigo-400 font-bold text-sm shadow-xl group-hover:-translate-y-1 transition-transform"
+                style={{ zIndex: 10 - i }}
+                title={m.name}
+              >
+                {m.name[0]?.toUpperCase()}
+              </div>
+            ))}
+            {members.length > 3 && (
+              <div className="w-10 h-10 rounded-xl bg-white/5 border-2 border-bg-dark flex items-center justify-center text-slate-400 font-bold text-xs shadow-xl group-hover:-translate-y-1 transition-transform" style={{ zIndex: 0 }}>
+                +{members.length - 3}
+              </div>
+            )}
+            <div
+              onClick={() => setIsInviteModalOpen(true)}
+              className="w-10 h-10 rounded-xl border-2 border-dashed border-white/20 flex items-center justify-center text-slate-500 hover:text-white hover:border-white transition-all ml-1 bg-bg-dark z-0 cursor-pointer"
+              title="Invite Member"
+            >
+              <Plus size={16} />
+            </div>
+          </div>
+
           <button
             onClick={() => setIsAiModalOpen(true)}
             className="p-3.5 bg-indigo-600 rounded-2xl text-white shadow-xl shadow-indigo-600/30 hover:bg-indigo-500 transition-all active:scale-95 flex items-center gap-3 group"
@@ -607,7 +691,6 @@ const ProjectDetail: React.FC = () => {
                             <div className="w-12 h-12 rounded-2xl bg-indigo-600/20 flex items-center justify-center text-indigo-400 font-bold text-lg border border-indigo-500/20">
                               {member.name[0]}
                             </div>
-                            <div className={cn("absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-4 border-bg-card", isOnline ? "bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]" : "bg-slate-500")} />
                           </div>
                           <div>
                             <p className="text-sm font-black text-white group-hover:text-indigo-400 transition-colors">{member.name}</p>
@@ -615,11 +698,6 @@ const ProjectDetail: React.FC = () => {
                           </div>
                         </div>
                         <div className="flex flex-col items-end">
-                          <span className={cn("text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-md",
-                            isOnline ? "bg-emerald-500/10 text-emerald-500" : "bg-slate-500/10 text-slate-500"
-                          )}>
-                            {isOnline ? 'Online' : 'Offline'}
-                          </span>
                         </div>
                       </div>
                     );
@@ -672,16 +750,46 @@ const ProjectDetail: React.FC = () => {
                 </div>
 
                 <form onSubmit={handleInvite} className="space-y-6">
-                  <div>
-                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-3">Email Address</label>
+                  <div className="relative">
+                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-3">GitHub Username or Email</label>
                     <input
-                      type="email"
+                      type="text"
                       required
                       value={inviteEmail}
-                      onChange={(e) => setInviteEmail(e.target.value)}
-                      placeholder="colleague@company.com"
+                      onChange={(e) => onSearchGithub(e.target.value)}
+                      placeholder="octocat or user@company.com"
                       className="w-full bg-bg-dark/50 border border-white/10 rounded-2xl p-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
                     />
+                    {isSearchingGithub && (
+                      <div className="absolute right-4 bottom-4">
+                        <div className="w-4 h-4 border-2 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin" />
+                      </div>
+                    )}
+
+                    {githubUsers.length > 0 && (
+                      <div className="absolute left-0 right-0 top-full mt-2 bg-[#0f172a] border border-white/10 z-[80] rounded-2xl overflow-hidden shadow-[0_32px_64px_-12px_rgba(0,0,0,0.5)] animate-in fade-in slide-in-from-top-2">
+                        <div className="p-2 border-b border-white/5 bg-white/5">
+                          <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest pl-2">GitHub Users Found</p>
+                        </div>
+                        {githubUsers.map((u: any) => (
+                          <button
+                            key={u.id}
+                            type="button"
+                            onClick={() => {
+                              setInviteEmail(u.login);
+                              setGithubUsers([]);
+                            }}
+                            className="w-full flex items-center gap-3 p-3 hover:bg-white/5 transition-colors text-left group"
+                          >
+                            <img src={u.avatar_url} alt="" className="w-8 h-8 rounded-lg border border-white/10" />
+                            <div>
+                              <p className="text-sm font-bold text-white group-hover:text-indigo-400 transition-colors">{u.login}</p>
+                              <p className="text-[10px] text-slate-500">GitHub Account</p>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   <div>
@@ -715,9 +823,17 @@ const ProjectDetail: React.FC = () => {
 
                   <button
                     type="submit"
-                    className="w-full py-4 rounded-2xl bg-indigo-600 text-white font-black text-sm uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-2xl shadow-indigo-600/30 active:scale-[0.98]"
+                    disabled={isInviting}
+                    className="w-full py-4 rounded-2xl bg-indigo-600 text-white font-black text-sm uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-2xl shadow-indigo-600/30 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
-                    Send Invitation
+                    {isInviting ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      'Send Invitation'
+                    )}
                   </button>
                 </form>
               </motion.div>

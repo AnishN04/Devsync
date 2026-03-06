@@ -7,6 +7,7 @@ const {
     createProject,
     updateProject,
     deleteProject,
+    addProjectMember
 } = require('../controllers/project.controller');
 
 // GET /api/projects  — all roles
@@ -23,5 +24,8 @@ router.put('/:id', verifyToken, checkRole(['Admin', 'Manager']), updateProject);
 
 // DELETE /api/projects/:id — Admin only
 router.delete('/:id', verifyToken, checkRole(['Admin']), deleteProject);
+
+// POST /api/projects/:id/members — Admin, Manager
+router.post('/:id/members', verifyToken, checkRole(['Admin', 'Manager']), addProjectMember);
 
 module.exports = router;

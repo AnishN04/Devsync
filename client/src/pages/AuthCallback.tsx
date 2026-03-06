@@ -10,11 +10,18 @@ export default function AuthCallback() {
         const params = new URLSearchParams(window.location.search);
         const accessToken = params.get('accessToken');
         const refreshToken = params.get('refreshToken');
+        const backendRedirect = params.get('redirect');
 
         if (accessToken && refreshToken) {
             completeOAuth(accessToken, refreshToken)
                 .then(() => {
-                    navigate('/', { replace: true });
+                    const redirectPath = backendRedirect || localStorage.getItem('redirectAfterAuth');
+                    if (redirectPath) {
+                        localStorage.removeItem('redirectAfterAuth');
+                        navigate(redirectPath, { replace: true });
+                    } else {
+                        navigate('/', { replace: true });
+                    }
                 })
                 .catch((err) => {
                     console.error("AuthCallback Error:", err);

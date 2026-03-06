@@ -69,11 +69,14 @@ ALTER TABLE projects ADD COLUMN IF NOT EXISTS tracking_branch     VARCHAR(100) D
 ALTER TABLE projects ADD COLUMN IF NOT EXISTS deployment_branch   VARCHAR(100) DEFAULT 'main';
 ALTER TABLE projects ADD COLUMN IF NOT EXISTS is_released         BOOLEAN DEFAULT FALSE;
 ALTER TABLE projects ADD COLUMN IF NOT EXISTS released_at         TIMESTAMP;
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS released_at         TIMESTAMP;
+ALTER TABLE project_members ADD COLUMN IF NOT EXISTS dashboard_visible    BOOLEAN DEFAULT TRUE;
 
 -- Add GitHub fields to tasks table
 ALTER TABLE tasks ADD COLUMN IF NOT EXISTS github_pr_number  INTEGER;
 ALTER TABLE tasks ADD COLUMN IF NOT EXISTS github_branch     VARCHAR(200);
 ALTER TABLE tasks ADD COLUMN IF NOT EXISTS github_pr_url     TEXT;
+ALTER TABLE tasks ADD COLUMN IF NOT EXISTS source            VARCHAR(50) DEFAULT NULL;
 
 -- New table: webhook event audit log
 CREATE TABLE IF NOT EXISTS github_events (
@@ -83,4 +86,18 @@ CREATE TABLE IF NOT EXISTS github_events (
   payload     JSONB NOT NULL,
   processed   BOOLEAN DEFAULT FALSE,
   created_at  TIMESTAMP DEFAULT NOW()
+);
+
+-- New table: project invitations
+CREATE TABLE IF NOT EXISTS invitations (
+  id            SERIAL PRIMARY KEY,
+  project_id    INTEGER REFERENCES projects(id) ON DELETE CASCADE,
+  email         VARCHAR(150) NOT NULL,
+  token         VARCHAR(255) UNIQUE NOT NULL,
+  role          VARCHAR(20) NOT NULL,
+  invited_by    INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  created_at    TIMESTAMP DEFAULT NOW(),
+  expires_at    TIMESTAMP NOT NULL,
+  accepted_at   TIMESTAMP,
+  UNIQUE(project_id, email)
 );

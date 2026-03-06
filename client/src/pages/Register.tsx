@@ -19,7 +19,14 @@ const Register: React.FC = () => {
     try {
       await register({ name, email, password });
       toast.success('Account created! Welcome to DevSync.');
-      navigate('/');
+      
+      const redirectPath = localStorage.getItem('redirectAfterAuth');
+      if (redirectPath) {
+          localStorage.removeItem('redirectAfterAuth');
+          navigate(redirectPath);
+      } else {
+          navigate('/');
+      }
     } catch (err) {
       toast.error('Registration failed. Please try again.');
     } finally {

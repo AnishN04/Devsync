@@ -18,7 +18,16 @@ const Login: React.FC = () => {
     try {
       await login({ email, password });
       toast.success('Welcome back to DevSync!');
-      navigate('/');
+      
+      const params = new URLSearchParams(window.location.search);
+      const redirectPath = params.get('redirect') || localStorage.getItem('redirectAfterAuth');
+      
+      if (redirectPath) {
+          localStorage.removeItem('redirectAfterAuth');
+          navigate(redirectPath);
+      } else {
+          navigate('/');
+      }
     } catch (err) {
       toast.error('Invalid credentials');
     } finally {
@@ -106,7 +115,11 @@ const Login: React.FC = () => {
             </div>
 
             <button
-              onClick={() => window.location.href = 'http://localhost:5000/api/github/auth'}
+              onClick={() => {
+                const params = new URLSearchParams(window.location.search);
+                const redirect = params.get('redirect') || localStorage.getItem('redirectAfterAuth') || '/';
+                window.location.href = `http://localhost:5000/api/github/auth?redirect=${encodeURIComponent(redirect)}`;
+              }}
               className="w-full bg-white/5 border border-white/10 hover:bg-white/10 text-white font-semibold py-3 rounded-xl flex items-center justify-center gap-3 transition-all"
             >
               <Github size={20} /> GitHub

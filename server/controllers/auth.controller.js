@@ -84,4 +84,22 @@ const getAllUsers = async (req, res, next) => {
     }
 };
 
-module.exports = { register, login, refresh, logout, getAllUsers, deleteUser, updateUserRole };
+const searchUsers = async (req, res, next) => {
+    try {
+        const { query: searchQuery } = req.query;
+        if (!searchQuery) return res.json([]);
+        
+        const { rows } = await query(
+            `SELECT id, name, email, github_username 
+             FROM users 
+             WHERE (email ILIKE $1 OR name ILIKE $1 OR github_username ILIKE $1) 
+             LIMIT 10`,
+            [`%${searchQuery}%`]
+        );
+        res.json(rows);
+    } catch (err) {
+        next(err);
+    }
+};
+
+module.exports = { register, login, refresh, logout, getAllUsers, deleteUser, updateUserRole, searchUsers };

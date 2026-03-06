@@ -14,6 +14,7 @@ const aiRoutes = require('./routes/ai.routes');
 const analyticsRoutes = require('./routes/analytics.routes');
 const githubRoutes = require('./routes/github.routes');
 const webhookRoutes = require('./routes/webhook.routes');
+const invitationRoutes = require('./routes/invitation.routes');
 const errorHandler = require('./middleware/errorHandler');
 const initSockets = require('./sockets/index');
 const session = require('express-session');
@@ -57,6 +58,7 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/github', githubRoutes);
 app.use('/api/webhooks', webhookRoutes);
+app.use('/api/invitations', invitationRoutes);
 
 // Global error handler (must be last)
 app.use(errorHandler);

@@ -1,8 +1,8 @@
 import React from 'react';
-import { Folder, CheckCircle2, Users, TrendingUp, Plus, MoreVertical, ArrowRight } from 'lucide-react';
+import { Folder, CheckCircle2, Users, TrendingUp, Plus, MoreVertical, ArrowRight, X, Check } from 'lucide-react';
 import { cn } from '../utils/helpers';
 import { useProjects, useAnalytics } from '../hooks/useDevSync';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { Github as GithubIcon } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -16,7 +16,14 @@ const Dashboard: React.FC = () => {
   const [menuOpenProjectId, setMenuOpenProjectId] = React.useState<number | null>(null);
   const [showAll, setShowAll] = React.useState(false);
 
-  // Close menu when clicking outside
+  // GitHub Sync modal state
+  const [showSyncModal, setShowSyncModal] = React.useState(false);
+  const [availableRepos, setAvailableRepos] = React.useState<any[]>([]);
+  const [selectedRepoIds, setSelectedRepoIds] = React.useState<Set<string>>(new Set());
+  const [isFetchingRepos, setIsFetchingRepos] = React.useState(false);
+  const [isSyncing, setIsSyncing] = React.useState(false);
+
+  // Close project dropdown when clicking outside
   React.useEffect(() => {
     const handleClickOutside = () => setMenuOpenProjectId(null);
     if (menuOpenProjectId !== null) {
@@ -25,13 +32,53 @@ const Dashboard: React.FC = () => {
     return () => window.removeEventListener('click', handleClickOutside);
   }, [menuOpenProjectId]);
 
-  const syncGithubRepos = async () => {
+  const openSyncModal = async () => {
+    setShowSyncModal(true);
+    setSelectedRepoIds(new Set());
+    setIsFetchingRepos(true);
     try {
-      await api.post('/github/org/sync');
+      const res = await api.get('/github/org/repos');
+      setAvailableRepos(res.data);
+    } catch {
+      toast.error('Failed to fetch GitHub repositories');
+      setShowSyncModal(false);
+    } finally {
+      setIsFetchingRepos(false);
+    }
+  };
+
+  const toggleRepo = (repoId: string) => {
+    setSelectedRepoIds(prev => {
+      const next = new Set(prev);
+      if (next.has(repoId)) next.delete(repoId);
+      else next.add(repoId);
+      return next;
+    });
+  };
+
+  const toggleAllRepos = () => {
+    if (selectedRepoIds.size === availableRepos.length) {
+      setSelectedRepoIds(new Set());
+    } else {
+      setSelectedRepoIds(new Set(availableRepos.map((r: any) => String(r.id))));
+    }
+  };
+
+  const confirmSync = async () => {
+    if (selectedRepoIds.size === 0) {
+      toast.error('Please select at least one repository');
+      return;
+    }
+    setIsSyncing(true);
+    try {
+      await api.post('/github/org/sync', { repoIds: Array.from(selectedRepoIds) });
       await refreshProjects();
-      toast.success('GitHub repos synced!');
-    } catch (err) {
+      toast.success(`Synced ${selectedRepoIds.size} repo${selectedRepoIds.size > 1 ? 's' : ''} from GitHub!`);
+      setShowSyncModal(false);
+    } catch {
       toast.error('Failed to sync GitHub repos');
+    } finally {
+      setIsSyncing(false);
     }
   };
 
@@ -87,7 +134,7 @@ const Dashboard: React.FC = () => {
         <div className="flex items-center gap-3">
           {user?.github_username && (
             <button
-              onClick={syncGithubRepos}
+              onClick={openSyncModal}
               className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-sm font-bold transition-all border border-white/10"
             >
               <GithubIcon size={18} /> Sync GitHub
@@ -126,7 +173,7 @@ const Dashboard: React.FC = () => {
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-heading font-bold text-white">Your Projects</h2>
           {projects.length > 6 && (
-            <button 
+            <button
               onClick={() => setShowAll(!showAll)}
               className="text-indigo-400 hover:text-indigo-300 text-sm font-bold flex items-center gap-1 transition-colors group/link"
             >
@@ -166,8 +213,8 @@ const Dashboard: React.FC = () => {
                       </div>
                     </div>
                     <div className="relative">
-                      <button 
-                        className="p-1 text-slate-500 hover:text-white relative z-10" 
+                      <button
+                        className="p-1 text-slate-500 hover:text-white relative z-10"
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
@@ -176,7 +223,7 @@ const Dashboard: React.FC = () => {
                       >
                         <MoreVertical size={20} />
                       </button>
-                      
+
                       {/* Dropdown Menu */}
                       {menuOpenProjectId === project.id && (
                         <div className="absolute right-0 top-full mt-2 w-32 glass-card border-white/10 z-50 overflow-hidden shadow-xl animate-in fade-in zoom-in-95 duration-200">
@@ -223,6 +270,148 @@ const Dashboard: React.FC = () => {
           </div>
         )}
       </section>
+
+      {/* GitHub Sync Modal */}
+      <AnimatePresence>
+        {showSyncModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => !isSyncing && setShowSyncModal(false)}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 30 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 30 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-lg glass-card p-8 bg-bg-card/98 border-white/10 shadow-2xl relative overflow-hidden"
+            >
+              {/* Top accent line */}
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-60" />
+
+              {/* Header */}
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 bg-slate-800 rounded-xl border border-white/10">
+                    <GithubIcon size={22} className="text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-heading font-black text-white text-xl tracking-tight">Sync GitHub Repos</h3>
+                    <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">Select repos to import</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => !isSyncing && setShowSyncModal(false)}
+                  className="p-2 hover:bg-white/10 rounded-xl text-slate-400 transition-all hover:rotate-90"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {/* Repo list */}
+              {isFetchingRepos ? (
+                <div className="flex flex-col items-center justify-center py-12 gap-3">
+                  <div className="w-8 h-8 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin" />
+                  <p className="text-sm text-slate-500 font-bold">Fetching repositories…</p>
+                </div>
+              ) : (
+                <>
+                  {/* Select all toggle */}
+                  <div className="flex items-center justify-between mb-3 px-1">
+                    <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">
+                      {availableRepos.length} Repositories
+                    </span>
+                    <button
+                      onClick={toggleAllRepos}
+                      className="text-[11px] font-black text-indigo-400 hover:text-indigo-300 uppercase tracking-widest transition-colors"
+                    >
+                      {selectedRepoIds.size === availableRepos.length ? 'Deselect All' : 'Select All'}
+                    </button>
+                  </div>
+
+                  <div className="space-y-2 max-h-72 overflow-y-auto pr-1 custom-scrollbar mb-6">
+                    {availableRepos.map((repo: any) => {
+                      const isSelected = selectedRepoIds.has(String(repo.id));
+                      const alreadySynced = projects.some((p: any) => String(p.github_repo_id) === String(repo.id));
+                      return (
+                        <button
+                          key={repo.id}
+                          onClick={() => toggleRepo(String(repo.id))}
+                          className={cn(
+                            "w-full flex items-center gap-3 p-3.5 rounded-xl border transition-all text-left",
+                            isSelected
+                              ? "bg-indigo-600/10 border-indigo-500/40"
+                              : "bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10"
+                          )}
+                        >
+                          {/* Checkbox */}
+                          <div className={cn(
+                            "w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all",
+                            isSelected ? "bg-indigo-600 border-indigo-600" : "border-white/20"
+                          )}>
+                            {isSelected && <Check size={12} className="text-white" />}
+                          </div>
+
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-bold text-white truncate">{repo.name}</span>
+                              {alreadySynced && (
+                                <span className="text-[9px] font-black uppercase tracking-widest text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded flex-shrink-0">
+                                  Synced
+                                </span>
+                              )}
+                              {repo.private && (
+                                <span className="text-[9px] font-black uppercase tracking-widest text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded flex-shrink-0">
+                                  Private
+                                </span>
+                              )}
+                            </div>
+                            {repo.description && (
+                              <p className="text-[11px] text-slate-500 mt-0.5 truncate">{repo.description}</p>
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
+                    {availableRepos.length === 0 && (
+                      <p className="text-center text-slate-500 py-8 text-sm">No repositories found in your organization.</p>
+                    )}
+                  </div>
+
+                  {/* Footer */}
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => setShowSyncModal(false)}
+                      className="flex-1 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 font-black text-sm uppercase tracking-widest transition-all border border-white/5"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={confirmSync}
+                      disabled={isSyncing || selectedRepoIds.size === 0}
+                      className="flex-1 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-sm uppercase tracking-widest transition-all shadow-xl shadow-indigo-600/20 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      {isSyncing ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          Syncing…
+                        </>
+                      ) : (
+                        <>
+                          <GithubIcon size={16} />
+                          Sync {selectedRepoIds.size > 0 ? `(${selectedRepoIds.size})` : ''}
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

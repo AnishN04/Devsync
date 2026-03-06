@@ -2,7 +2,10 @@ const { query } = require('../config/db');
 
 const findByProject = async (projectId) => {
     const { rows } = await query(
-        'SELECT * FROM tasks WHERE project_id = $1 ORDER BY created_at DESC',
+        `SELECT * FROM tasks 
+         WHERE project_id = $1 
+           AND (source IS NULL OR source != 'github_commit')
+         ORDER BY created_at DESC`,
         [projectId]
     );
     return rows;

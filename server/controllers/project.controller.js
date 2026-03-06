@@ -50,4 +50,23 @@ const deleteProject = async (req, res, next) => {
     }
 };
 
-module.exports = { getAllProjects, getProjectById, createProject, updateProject, deleteProject };
+const addProjectMember = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const { userIdentifier, role } = req.body;
+        if (!userIdentifier) return res.status(400).json({ message: 'userIdentifier is required (GitHub username or email)' });
+
+        const newMember = await projectService.addMemberToProject(Number(id), userIdentifier, role || 'Developer', req.user.id, req.user.role);
+
+        const io = req.app.get('io');
+        // Refresh project members via socket if needed
+        io.to(EVENTS.PROJECT_ROOM(Number(id))).emit(EVENTS.PROJECT_UPDATED, { message: 'Member added' });
+
+        res.status(201).json({ message: 'Member added successfully', user: newMember });
+    } catch (err) {
+        next(err);
+    }
+};
+
+module.exports = { getAllProjects, getProjectById, createProject, updateProject, deleteProject, addProjectMember };
+

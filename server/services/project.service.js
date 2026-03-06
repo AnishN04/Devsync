@@ -41,8 +41,32 @@ const deleteProject = async (id, userId, userRole) => {
     if (userRole !== 'Admin' && project.owner_id !== userId) {
         throw Object.assign(new Error('Only Admins or owners can delete projects'), { status: 403 });
     }
-    
+
     return projectModel.remove(id);
 };
 
-module.exports = { getAllProjects, getProjectById, createProject, updateProject, deleteProject };
+const addMemberToProject = async (projectId, userIdentifier, role, requestingUserId, requestingUserRole) => {
+    const project = await projectModel.findById(projectId);
+    if (!project) throw Object.assign(new Error('Project not found'), { status: 404 });
+
+    if (requestingUserRole !== 'Admin' && project.owner_id !== requestingUserId) {
+        const membership = await memberModel.findMembership(projectId, requestingUserId);
+        if (!membership || membership.role !== 'Manager') {
+            throw Object.assign(new Error('Only Managers or Owners can add members'), { status: 403 });
+        }
+    }
+
+    const { query } = require('../config/db');
+    const { rows } = await query(
+        'SELECT id, name, email FROM users WHERE github_username = $1 OR email = $1',
+        [userIdentifier]
+    );
+
+    const targetUser = rows[0];
+    if (!targetUser) throw Object.assign(new Error('User not found. They must sign up and link GitHub first.'), { status: 404 });
+
+    await memberModel.add({ projectId, userId: targetUser.id, role });
+    return targetUser;
+};
+
+module.exports = { getAllProjects, getProjectById, createProject, updateProject, deleteProject, addMemberToProject };
