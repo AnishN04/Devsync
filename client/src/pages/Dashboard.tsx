@@ -128,42 +128,46 @@ const Dashboard: React.FC = () => {
     <div className="space-y-10">
       <header className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-heading font-extrabold text-white tracking-tight">Dashboard</h1>
-          <p className="text-slate-400 mt-1">Welcome back! Here's what's happening today.</p>
+          <h1 className="text-4xl font-heading font-black text-white tracking-tighter uppercase">Dashboard</h1>
+          <p className="text-slate-500 mt-1 font-medium tracking-wide">Welcome back, <span className="text-indigo-400 font-bold">{user?.name}</span>! Here's your workspace overview.</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           {user?.github_username && (
             <button
               onClick={openSyncModal}
-              className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-sm font-bold transition-all border border-white/10"
+              className="flex items-center gap-2 px-5 py-2.5 bg-white/5 hover:bg-white/10 text-white rounded-2xl text-xs font-black uppercase tracking-widest transition-all border border-white/5 shadow-lg active:scale-95 group"
             >
-              <GithubIcon size={18} /> Sync GitHub
+              <GithubIcon size={18} className="group-hover:rotate-12 transition-transform" /> Sync GitHub
             </button>
           )}
-          <button className="btn-primary flex items-center gap-2">
-            <Plus size={20} /> New Project
+          <button className="btn-primary flex items-center gap-2 group">
+            <Plus size={20} className="group-hover:rotate-90 transition-transform" /> 
+            <span className="uppercase tracking-widest text-xs font-black">New Project</span>
           </button>
         </div>
       </header>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         {stats.map((stat, idx) => (
           <motion.div
             key={stat.label}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: idx * 0.1 }}
-            className="glass-card p-6 hover:scale-[1.02] cursor-default"
+            className="glass-card p-8 group cursor-default relative overflow-hidden"
           >
-            <div className="flex items-center justify-between mb-4">
-              <div className={cn("p-3 rounded-xl", stat.bg)}>
-                <stat.icon className={stat.color} size={24} />
-              </div>
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">This Week</span>
+            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                <stat.icon size={80} className={stat.color} />
             </div>
-            <h3 className="text-3xl font-heading font-extrabold text-white">{stat.value}</h3>
-            <p className="text-sm font-medium text-slate-400 mt-1">{stat.label}</p>
+            <div className="flex items-center justify-between mb-6">
+              <div className={cn("p-4 rounded-2xl glow-border shadow-2xl", stat.bg)}>
+                <stat.icon className={stat.color} size={28} />
+              </div>
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Live Data</span>
+            </div>
+            <h3 className="text-4xl font-heading font-black text-white tracking-tighter">{stat.value}</h3>
+            <p className="text-xs font-black text-slate-500 mt-2 uppercase tracking-widest">{stat.label}</p>
           </motion.div>
         ))}
       </div>
@@ -199,22 +203,22 @@ const Dashboard: React.FC = () => {
               >
                 <Link
                   to={`/projects/${project.id}`}
-                  className="glass-card p-6 block hover:border-indigo-500/50 transition-all hover:translate-y-[-4px]"
+                  className="glass-card p-8 block border border-white/5 hover:border-indigo-500/30 transition-all duration-500 hover:translate-y-[-8px] group bg-gradient-to-br from-white/[0.03] to-transparent"
                 >
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="flex items-center gap-2">
+                  <div className="flex justify-between items-start mb-6">
+                    <div className="flex items-center gap-3">
                       {project.is_released && (
-                        <span className="bg-emerald-500/10 text-emerald-400 text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded border border-emerald-500/20">
+                        <span className="bg-emerald-500/10 text-emerald-400 text-[9px] font-black uppercase tracking-[0.15em] px-2.5 py-1.5 rounded-lg border border-emerald-500/20 shadow-lg">
                           🚀 Released
                         </span>
                       )}
-                      <div className="w-12 h-12 bg-indigo-600/10 rounded-xl flex items-center justify-center text-indigo-400 font-bold text-xl">
+                      <div className="w-14 h-14 bg-indigo-600/10 rounded-2xl glow-border flex items-center justify-center text-indigo-400 font-black text-2xl shadow-inner uppercase tracking-tighter">
                         {project.title[0]}
                       </div>
                     </div>
                     <div className="relative">
                       <button
-                        className="p-1 text-slate-500 hover:text-white relative z-10"
+                        className="p-2 text-slate-600 hover:text-white transition-all bg-white/5 rounded-xl hover:bg-white/10"
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
@@ -225,42 +229,50 @@ const Dashboard: React.FC = () => {
                       </button>
 
                       {/* Dropdown Menu */}
-                      {menuOpenProjectId === project.id && (
-                        <div className="absolute right-0 top-full mt-2 w-32 glass-card border-white/10 z-50 overflow-hidden shadow-xl animate-in fade-in zoom-in-95 duration-200">
-                          <button
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              deleteProject(project.id);
-                              setMenuOpenProjectId(null);
-                            }}
-                            className="w-full px-4 py-2 text-left text-xs font-bold text-rose-400 hover:bg-rose-500/10 transition-colors"
+                      <AnimatePresence>
+                        {menuOpenProjectId === project.id && (
+                          <motion.div 
+                            initial={{ opacity: 0, scale: 0.9, y: 5 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 5 }}
+                            className="absolute right-0 top-full mt-3 w-40 glass-card !bg-bg-card/95 backdrop-blur-2xl border-white/10 z-50 overflow-hidden shadow-2xl rounded-2xl p-1.5"
                           >
-                            Delete Project
-                          </button>
-                        </div>
-                      )}
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                deleteProject(project.id);
+                                setMenuOpenProjectId(null);
+                              }}
+                              className="w-full px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-rose-400 hover:bg-rose-500/10 rounded-xl transition-all flex items-center gap-2 group/del"
+                            >
+                              <X size={14} className="group-hover/del:rotate-90 transition-transform" />
+                              Delete Project
+                            </button>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                   </div>
 
-                  <h3 className="text-lg font-heading font-bold text-white mb-2 group-hover:text-indigo-400 transition-colors">
+                  <h3 className="text-xl font-heading font-black text-white mb-3 group-hover:text-indigo-400 transition-colors tracking-tight">
                     {project.title}
                   </h3>
-                  <p className="text-sm text-slate-400 line-clamp-2 mb-6">
+                  <p className="text-sm font-medium text-slate-500 line-clamp-2 mb-8 leading-relaxed">
                     {project.description}
                   </p>
 
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-500">
-                      <span>Progress</span>
-                      <span className="text-indigo-400">{project.progress}%</span>
+                  <div className="space-y-4 bg-white/5 p-4 rounded-2xl border border-white/5 group-hover:bg-white/[0.08] transition-colors">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Project Completion</span>
+                      <span className="text-xs font-black text-indigo-400 tracking-tighter">{project.progress}%</span>
                     </div>
-                    <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-2.5 bg-black/20 rounded-full overflow-hidden p-0.5">
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${project.progress}%` }}
-                        transition={{ duration: 1, delay: 0.8 }}
-                        className="h-full bg-gradient-to-r from-indigo-600 to-violet-600"
+                        transition={{ duration: 1.5, cubicBezier: [0.16, 1, 0.3, 1], delay: 0.8 }}
+                        className="h-full bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 rounded-full shadow-[0_0_12px_rgba(99,102,241,0.4)]"
                       />
                     </div>
                   </div>
@@ -282,56 +294,62 @@ const Dashboard: React.FC = () => {
             className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
           >
             <motion.div
-              initial={{ scale: 0.95, opacity: 0, y: 30 }}
+              initial={{ scale: 0.9, opacity: 0, y: 40 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.95, opacity: 0, y: 30 }}
+              exit={{ scale: 0.9, opacity: 0, y: 40 }}
+              transition={{ cubicBezier: [0.16, 1, 0.3, 1], duration: 0.6 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-lg glass-card p-8 bg-bg-card/98 border-white/10 shadow-2xl relative overflow-hidden"
+              className="w-full max-w-xl glass-card p-10 bg-bg-card/95 backdrop-blur-3xl border-white/10 shadow-[0_40px_100px_-15px_rgba(0,0,0,0.8)] relative overflow-hidden rounded-[2.5rem]"
             >
-              {/* Top accent line */}
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-60" />
+              {/* Gradient Aura */}
+              <div className="absolute -top-24 -right-24 w-48 h-48 bg-indigo-600/20 rounded-full blur-[80px]" />
+              <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-violet-600/10 rounded-full blur-[80px]" />
 
               {/* Header */}
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 bg-slate-800 rounded-xl border border-white/10">
-                    <GithubIcon size={22} className="text-white" />
+              <div className="flex items-center justify-between mb-8 relative">
+                <div className="flex items-center gap-4">
+                  <div className="p-4 bg-white/5 rounded-2xl border border-white/10 shadow-inner glow-border">
+                    <GithubIcon size={26} className="text-white" />
                   </div>
                   <div>
-                    <h3 className="font-heading font-black text-white text-xl tracking-tight">Sync GitHub Repos</h3>
-                    <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">Select repos to import</p>
+                    <h3 className="font-heading font-black text-white text-2xl tracking-tighter uppercase">Sync Repositories</h3>
+                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mt-1">GitHub Integration</p>
                   </div>
                 </div>
                 <button
                   onClick={() => !isSyncing && setShowSyncModal(false)}
-                  className="p-2 hover:bg-white/10 rounded-xl text-slate-400 transition-all hover:rotate-90"
+                  className="p-2.5 hover:bg-white/10 rounded-2xl text-slate-500 transition-all hover:rotate-90 hover:text-white active:scale-90"
                 >
-                  <X size={20} />
+                  <X size={22} />
                 </button>
               </div>
 
               {/* Repo list */}
               {isFetchingRepos ? (
-                <div className="flex flex-col items-center justify-center py-12 gap-3">
-                  <div className="w-8 h-8 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin" />
-                  <p className="text-sm text-slate-500 font-bold">Fetching repositories…</p>
+                <div className="flex flex-col items-center justify-center py-16 gap-4">
+                    <div className="relative">
+                        <div className="w-12 h-12 border-4 border-indigo-500/10 border-t-indigo-500 rounded-full animate-spin" />
+                        <div className="absolute inset-0 w-12 h-12 border-4 border-transparent border-b-violet-500/30 rounded-full animate-[spin_2s_linear_infinite]" />
+                    </div>
+                  <p className="text-xs text-slate-500 font-black uppercase tracking-widest animate-pulse">Scanning GitHub Registry…</p>
                 </div>
               ) : (
                 <>
                   {/* Select all toggle */}
-                  <div className="flex items-center justify-between mb-3 px-1">
-                    <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">
-                      {availableRepos.length} Repositories
+                  <div className="flex items-center justify-between mb-4 px-2">
+                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                      {availableRepos.length} Available Repos
                     </span>
                     <button
                       onClick={toggleAllRepos}
-                      className="text-[11px] font-black text-indigo-400 hover:text-indigo-300 uppercase tracking-widest transition-colors"
+                      className="text-[10px] font-black text-indigo-400 hover:text-indigo-300 uppercase tracking-widest transition-colors flex items-center gap-2 group"
                     >
+                      <CheckCircle2 size={14} className="group-hover:scale-110 transition-transform" />
                       {selectedRepoIds.size === availableRepos.length ? 'Deselect All' : 'Select All'}
                     </button>
                   </div>
 
-                  <div className="space-y-2 max-h-72 overflow-y-auto pr-1 custom-scrollbar mb-6">
+                  <div className="space-y-3 max-h-[22rem] overflow-y-auto pr-2 custom-scrollbar mb-8 pb-4">
                     {availableRepos.map((repo: any) => {
                       const isSelected = selectedRepoIds.has(String(repo.id));
                       const alreadySynced = projects.some((p: any) => String(p.github_repo_id) === String(repo.id));
@@ -340,68 +358,80 @@ const Dashboard: React.FC = () => {
                           key={repo.id}
                           onClick={() => toggleRepo(String(repo.id))}
                           className={cn(
-                            "w-full flex items-center gap-3 p-3.5 rounded-xl border transition-all text-left",
+                            "w-full flex items-center gap-4 p-4 rounded-2xl border transition-all duration-300 text-left relative overflow-hidden group",
                             isSelected
-                              ? "bg-indigo-600/10 border-indigo-500/40"
-                              : "bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10"
+                              ? "bg-indigo-600/10 border-indigo-500/30 shadow-lg"
+                              : "bg-white/[0.03] border-white/5 hover:bg-white/[0.08] hover:border-white/10"
                           )}
                         >
                           {/* Checkbox */}
                           <div className={cn(
-                            "w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all",
-                            isSelected ? "bg-indigo-600 border-indigo-600" : "border-white/20"
+                            "w-6 h-6 rounded-lg border-2 flex items-center justify-center flex-shrink-0 transition-all duration-300",
+                            isSelected ? "bg-indigo-600 border-indigo-600 shadow-[0_0_15px_rgba(99,102,241,0.4)]" : "border-white/10"
                           )}>
-                            {isSelected && <Check size={12} className="text-white" />}
+                            {isSelected && <Check size={14} className="text-white stroke-[3px]" />}
                           </div>
 
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm font-bold text-white truncate">{repo.name}</span>
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-sm font-black text-white truncate group-hover:text-indigo-400 transition-colors uppercase tracking-tight">{repo.name}</span>
                               {alreadySynced && (
-                                <span className="text-[9px] font-black uppercase tracking-widest text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded flex-shrink-0">
+                                <span className="text-[8px] font-black uppercase tracking-widest text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-md border border-emerald-400/20 flex-shrink-0">
                                   Synced
                                 </span>
                               )}
                               {repo.private && (
-                                <span className="text-[9px] font-black uppercase tracking-widest text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded flex-shrink-0">
+                                <span className="text-[8px] font-black uppercase tracking-widest text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20 flex-shrink-0">
                                   Private
                                 </span>
                               )}
                             </div>
-                            {repo.description && (
-                              <p className="text-[11px] text-slate-500 mt-0.5 truncate">{repo.description}</p>
+                            {repo.description ? (
+                              <p className="text-[11px] font-medium text-slate-500 truncate leading-relaxed group-hover:text-slate-400 transition-colors">{repo.description}</p>
+                            ) : (
+                                <p className="text-[11px] font-medium italic text-slate-600 group-hover:text-slate-500 transition-colors">No description provided</p>
                             )}
                           </div>
+                          
+                          {isSelected && (
+                              <motion.div 
+                                layoutId={`repo-bg-${repo.id}`}
+                                className="absolute inset-0 bg-gradient-to-r from-indigo-600/5 to-transparent pointer-events-none" 
+                              />
+                          )}
                         </button>
                       );
                     })}
                     {availableRepos.length === 0 && (
-                      <p className="text-center text-slate-500 py-8 text-sm">No repositories found in your organization.</p>
+                      <div className="text-center py-12 px-6 bg-white/[0.02] rounded-3xl border border-dashed border-white/10">
+                        <Folder className="w-12 h-12 text-slate-700 mx-auto mb-4" />
+                        <p className="text-slate-500 text-sm font-bold uppercase tracking-widest">No repositories found</p>
+                      </div>
                     )}
                   </div>
 
                   {/* Footer */}
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-4 relative">
                     <button
                       onClick={() => setShowSyncModal(false)}
-                      className="flex-1 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 font-black text-sm uppercase tracking-widest transition-all border border-white/5"
+                      className="flex-1 py-4 rounded-2xl bg-white/5 hover:bg-white/10 text-slate-400 font-black text-[10px] uppercase tracking-[0.2em] transition-all border border-white/5 active:scale-95"
                     >
                       Cancel
                     </button>
                     <button
                       onClick={confirmSync}
                       disabled={isSyncing || selectedRepoIds.size === 0}
-                      className="flex-1 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-sm uppercase tracking-widest transition-all shadow-xl shadow-indigo-600/20 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      className="flex-[1.5] py-4 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-[10px] uppercase tracking-[0.2em] transition-all shadow-[0_15px_30px_-5px_rgba(99,102,241,0.5)] active:scale-95 disabled:opacity-30 disabled:grayscale disabled:cursor-not-allowed flex items-center justify-center gap-2 group"
                     >
                       {isSyncing ? (
                         <>
                           <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                          Syncing…
+                          Processing…
                         </>
                       ) : (
                         <>
-                          <GithubIcon size={16} />
-                          Sync {selectedRepoIds.size > 0 ? `(${selectedRepoIds.size})` : ''}
+                          <GithubIcon size={16} className="group-hover:rotate-12 transition-transform" />
+                          Initialize Sync {selectedRepoIds.size > 0 ? `(${selectedRepoIds.size})` : ''}
                         </>
                       )}
                     </button>
