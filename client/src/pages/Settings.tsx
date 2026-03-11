@@ -7,7 +7,9 @@ import {
   Mail,
   Calendar,
   Trash2,
-  ChevronDown
+  ChevronDown,
+  X,
+  Target
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../utils/helpers';
@@ -16,18 +18,25 @@ import { useAllUsers } from '../hooks/useDevSync';
 import Avatar from '../components/Avatar';
 import api from '../services/axios';
 import { useAuth } from '../contexts/AuthContext';
+import InviteModal from '../components/InviteModal';
 
 const Settings: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [editingUserId, setEditingUserId] = useState<number | null>(null);
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const { users, isLoading, refreshUsers } = useAllUsers();
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, refreshProfile } = useAuth();
+  const isSadmin = currentUser?.role === 'sadmin';
+
+  React.useEffect(() => {
+    refreshUsers();
+  }, []);
 
   const roleColors: Record<string, string> = {
     Admin: 'bg-indigo-500/10 text-indigo-400',
     Manager: 'bg-violet-500/10 text-violet-400',
     Developer: 'bg-emerald-500/10 text-emerald-400',
-    Viewer: 'bg-slate-500/10 text-slate-400',
+    sadmin: 'bg-rose-500/10 text-rose-400',
   };
 
   const handleDeleteUser = async (id: number) => {
@@ -45,6 +54,12 @@ const Settings: React.FC = () => {
     try {
       await api.patch(`/auth/users/${userId}/role`, { role: newRole });
       toast.success(`Role updated to ${newRole}`);
+
+      // If updating our own role, refresh profile to update UI state
+      if (currentUser && Number(currentUser.id) === userId) {
+        await refreshProfile();
+      }
+
       setEditingUserId(null);
       refreshUsers();
     } catch (err) {
@@ -61,13 +76,30 @@ const Settings: React.FC = () => {
     <div className="space-y-8">
       <header className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-heading font-extrabold text-white tracking-tight">Team Settings</h1>
-          <p className="text-slate-400 mt-1">Manage your organization's members and their permissions.</p>
+          <h1 className="text-3xl font-heading font-extrabold text-white tracking-tight">
+            {isSadmin ? 'System Settings' : 'Team Settings'}
+          </h1>
+          <p className="text-slate-400 mt-1">
+            {isSadmin
+              ? 'Global user authorization and infrastructure controls.'
+              : "Manage your organization's members and their permissions."}
+          </p>
         </div>
-        <button className="btn-primary flex items-center gap-2">
-          <UserPlus size={20} /> Invite Member
-        </button>
+        {(isSadmin || currentUser?.role === 'Admin') && (
+          <button 
+            onClick={() => setIsInviteModalOpen(true)}
+            className="btn-primary flex items-center gap-2"
+          >
+            <UserPlus size={20} /> Invite Member
+          </button>
+        )}
       </header>
+
+      <InviteModal 
+        isOpen={isInviteModalOpen} 
+        onClose={() => setIsInviteModalOpen(false)} 
+        onSuccess={() => refreshUsers()}
+      />
 
       <div className="glass-card overflow-hidden">
         <div className="p-6 border-b border-white/10 flex items-center justify-between bg-white/5">
@@ -92,6 +124,7 @@ const Settings: React.FC = () => {
               <tr className="text-xs font-bold text-slate-500 uppercase tracking-widest border-b border-white/10">
                 <th className="px-6 py-4">Member</th>
                 <th className="px-6 py-4">Role</th>
+                {isSadmin && <th className="px-6 py-4">Engagement</th>}
                 <th className="px-6 py-4">Joined</th>
                 <th className="px-6 py-4 text-right">Actions</th>
               </tr>
@@ -115,27 +148,26 @@ const Settings: React.FC = () => {
                         />
                         <div>
                           <p className="text-sm font-bold text-white">{user.name}</p>
-                          <p className="text-xs text-slate-500 flex items-center gap-1"><Mail size={12} /> {user.email}</p>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2 relative">
-                        <span className={cn("text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full flex items-center gap-1.5", roleColors[user.role])}>
+                        <span className={cn("text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full flex items-center gap-1.5", roleColors[user.role] || 'bg-slate-500/10 text-slate-400')}>
                           <Shield size={10} /> {user.role}
                         </span>
-                        {currentUser?.role === 'Admin' && (
+                        {(currentUser?.role === 'Admin' || isSadmin) && (
                           <div className="relative">
-                            <button 
+                            <button
                               onClick={() => setEditingUserId(editingUserId === user.id ? null : user.id)}
                               className="p-1 text-slate-600 hover:text-white transition-all"
                             >
                               <ChevronDown size={14} className={cn(editingUserId === user.id && "rotate-180")} />
                             </button>
-                            
+
                             {editingUserId === user.id && (
                               <div className="absolute left-0 top-full mt-2 w-32 glass-card border-white/10 z-50 overflow-hidden shadow-xl animate-in fade-in zoom-in-95 duration-200">
-                                {['Admin', 'Manager', 'Developer', 'Viewer'].map(r => (
+                                {['Admin', 'Manager', 'Developer', 'sadmin'].map(r => (
                                   <button
                                     key={r}
                                     onClick={() => handleUpdateRole(user.id, r)}
@@ -153,6 +185,14 @@ const Settings: React.FC = () => {
                         )}
                       </div>
                     </td>
+                    {isSadmin && (
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">Projects: <span className="text-white">{user.project_count || 0}</span></span>
+                          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">Tasks: <span className="text-white">{user.task_count || 0}</span></span>
+                        </div>
+                      </td>
+                    )}
                     <td className="px-6 py-4">
                       <span className="text-xs text-slate-400 font-medium flex items-center gap-1.5">
                         <Calendar size={14} /> {new Date(user.joined).toLocaleDateString()}
@@ -160,13 +200,13 @@ const Settings: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                        <button 
+                        <button
                           className="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-all"
                           onClick={() => toast('User details feature coming soon')}
                         >
                           <MoreVertical size={18} />
                         </button>
-                        {currentUser?.role === 'Admin' && currentUser.id !== user.id && (
+                        {(currentUser?.role === 'Admin' || isSadmin) && currentUser.id !== user.id && (
                           <button
                             onClick={() => handleDeleteUser(user.id)}
                             className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"

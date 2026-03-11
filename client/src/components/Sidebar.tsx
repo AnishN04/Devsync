@@ -7,7 +7,8 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
-  Layers
+  Layers,
+  Users
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { cn } from '../utils/helpers';
@@ -19,11 +20,16 @@ const Sidebar: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  const navItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
-    { icon: BarChart3, label: 'Analytics', path: '/analytics' },
-    ...(user?.role === 'Admin' ? [{ icon: Settings, label: 'Settings', path: '/settings' }] : []),
-  ];
+  const navItems = user?.role === 'sadmin'
+    ? [
+      { icon: Settings, label: 'Settings', path: '/settings' },
+      { icon: BarChart3, label: 'Analytics', path: '/analytics' },
+    ]
+    : [
+      { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
+      { icon: BarChart3, label: 'Analytics', path: '/analytics' },
+      ...(user?.role === 'Admin' ? [{ icon: Settings, label: 'Settings', path: '/settings' }] : []),
+    ];
 
   return (
     <aside
@@ -63,16 +69,16 @@ const Sidebar: React.FC = () => {
           >
             {({ isActive }) => (
               <>
-                <item.icon 
-                  size={20} 
+                <item.icon
+                  size={20}
                   className={cn(
-                    "transition-all duration-300", 
+                    "transition-all duration-300",
                     isActive ? "text-indigo-400 scale-110" : "group-hover:text-slate-200 group-hover:scale-110"
-                  )} 
+                  )}
                 />
                 {!isCollapsed && <span className="font-bold text-sm tracking-wide">{item.label}</span>}
                 {isActive && (
-                  <motion.div 
+                  <motion.div
                     layoutId="active-indicator"
                     className="absolute left-0 w-1 h-6 bg-indigo-500 rounded-r-full"
                   />

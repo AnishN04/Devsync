@@ -46,7 +46,8 @@ const Analytics: React.FC = () => {
     totalTasks,
     burndownData,
     radarData,
-    taskHistoryData: cumulativeData
+    taskHistoryData: cumulativeData,
+    isSadmin
   } = analytics;
 
   const CustomTooltip = ({ active, payload, label }: any) => {
@@ -59,8 +60,8 @@ const Analytics: React.FC = () => {
           </p>
           {payload.map((item: any, index: number) => (
             <div key={index} className="flex items-center justify-between gap-6 py-1">
-                <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest">{item.name}</span>
-                <span className="text-xs font-mono font-black text-white tabular-nums">{item.value} <span className="text-[9px] text-slate-700">UNTs</span></span>
+              <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest">{item.name}</span>
+              <span className="text-xs font-mono font-black text-white tabular-nums">{item.value} <span className="text-[9px] text-slate-700">{isSadmin ? 'QNT' : 'UNTs'}</span></span>
             </div>
           ))}
           <div className="mt-4 flex gap-1">
@@ -79,17 +80,19 @@ const Analytics: React.FC = () => {
         <div className="absolute -left-8 top-1/2 -translate-y-1/2 w-1 h-12 bg-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.5)]" />
         <div>
           <h1 className="text-4xl font-black text-white tracking-tighter uppercase font-mono">
-            System Analytics <span className="text-cyan-500 animate-pulse">_</span>
+            {isSadmin ? 'Global Node Analytics' : 'System Analytics'} <span className="text-cyan-500 animate-pulse">_</span>
           </h1>
-          <p className="text-slate-500 mt-2 font-mono text-[10px] uppercase tracking-[0.4em]">Integrated Performance Monitoring Protocol 4.2.0</p>
+          <p className="text-slate-500 mt-2 font-mono text-[10px] uppercase tracking-[0.4em]">
+            {isSadmin ? 'Global Infrastructure Monitoring Protocol // Nodes / Projects / Tasks' : 'Integrated Performance Monitoring Protocol 4.2.0'}
+          </p>
         </div>
         <div className="flex items-center gap-4">
-            <div className="px-4 py-2 bg-slate-900/50 border border-slate-800 rounded-lg font-mono text-[10px] text-slate-500 uppercase tracking-widest">
-                Status: <span className="text-emerald-400">Operational</span>
-            </div>
-            <div className="px-4 py-2 bg-slate-900/50 border border-slate-800 rounded-lg font-mono text-[10px] text-slate-500 uppercase tracking-widest">
-                Nodes: <span className="text-cyan-400">Active</span>
-            </div>
+          <div className="px-4 py-2 bg-slate-900/50 border border-slate-800 rounded-lg font-mono text-[10px] text-slate-500 uppercase tracking-widest">
+            Status: <span className="text-emerald-400">Operational</span>
+          </div>
+          <div className="px-4 py-2 bg-slate-900/50 border border-slate-800 rounded-lg font-mono text-[10px] text-slate-500 uppercase tracking-widest">
+            Nodes: <span className="text-cyan-400">{isSadmin ? 'Regional' : 'Active'}</span>
+          </div>
         </div>
       </header>
 
@@ -106,30 +109,30 @@ const Analytics: React.FC = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: idx * 0.1, cubicBezier: [0.16, 1, 0.3, 1] }}
             className={cn(
-                "bg-slate-900/30 backdrop-blur-md border-[0.5px] p-6 flex flex-col gap-4 relative overflow-hidden group hover:bg-slate-900/50 transition-all",
-                stat.border
+              "bg-slate-900/30 backdrop-blur-md border-[0.5px] p-6 flex flex-col gap-4 relative overflow-hidden group hover:bg-slate-900/50 transition-all",
+              stat.border
             )}
           >
             {/* Grid Pattern Inside */}
             <div className="absolute inset-0 opacity-5 pointer-events-none" style={{ backgroundImage: 'radial-gradient(#ffffff 0.5px, transparent 0.5px)', backgroundSize: '10px 10px' }} />
-            
+
             <div className="flex items-center justify-between relative">
-                <span className="text-[9px] font-black text-slate-500 uppercase tracking-[0.3em] font-mono">{stat.label}</span>
-                <stat.icon className={cn(stat.color, "opacity-50 group-hover:opacity-100 transition-opacity")} size={18} />
+              <span className="text-[9px] font-black text-slate-500 uppercase tracking-[0.3em] font-mono">{stat.label}</span>
+              <stat.icon className={cn(stat.color, "opacity-50 group-hover:opacity-100 transition-opacity")} size={18} />
             </div>
-            
+
             <div className="flex items-end justify-between mt-2 relative">
-                <h3 className="text-4xl font-mono font-black text-white tracking-widest leading-none">
-                    {stat.value}
-                </h3>
-                <div className="flex flex-col items-end gap-1">
-                    <div className="flex gap-0.5">
-                        {[1, 2, 3, 4, 5].map(i => (
-                            <div key={i} className={cn("w-1.5 h-1", i <= (idx + 1) * 2 ? stat.color.replace('text', 'bg') : 'bg-slate-800')} />
-                        ))}
-                    </div>
-                    <span className="text-[8px] font-mono text-slate-600 uppercase tracking-tighter">Delta Optimizing...</span>
+              <h3 className="text-4xl font-mono font-black text-white tracking-widest leading-none">
+                {stat.value}
+              </h3>
+              <div className="flex flex-col items-end gap-1">
+                <div className="flex gap-0.5">
+                  {[1, 2, 3, 4, 5].map(i => (
+                    <div key={i} className={cn("w-1.5 h-1", i <= (idx + 1) * 2 ? stat.color.replace('text', 'bg') : 'bg-slate-800')} />
+                  ))}
                 </div>
+                <span className="text-[8px] font-mono text-slate-600 uppercase tracking-tighter">Delta Optimizing...</span>
+              </div>
             </div>
 
             {/* Scanning Line Effect */}
@@ -149,18 +152,18 @@ const Analytics: React.FC = () => {
           <div className="absolute top-0 left-0 w-1 h-full bg-cyan-500/20 group-hover:bg-cyan-500/40 transition-colors" />
           <div className="flex items-center justify-between mb-8 relative">
             <h3 className="text-sm font-mono font-black text-white flex items-center gap-3 uppercase tracking-widest">
-              <Activity className="text-cyan-400" size={18} /> 
-              Burndown Velocity <span className="text-[10px] text-slate-600 font-bold tracking-tighter">/ PROT-XYZ /</span>
+              <Activity className="text-cyan-400" size={18} />
+              {isSadmin ? 'Global Task Velocity' : 'Burndown Velocity'} <span className="text-[10px] text-slate-600 font-bold tracking-tighter">/ PROT-XYZ /</span>
             </h3>
             <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse shadow-[0_0_8px_rgba(6,182,212,0.8)]" />
-                <span className="text-[9px] font-mono font-black text-slate-500 uppercase tracking-widest">Live Trace</span>
+              <div className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse shadow-[0_0_8px_rgba(6,182,212,0.8)]" />
+              <span className="text-[9px] font-mono font-black text-slate-500 uppercase tracking-widest">Live Trace</span>
             </div>
           </div>
           <div className="h-[300px] w-full relative">
             {/* Background Grid Lines Animation Effect */}
             <div className="absolute inset-0 opacity-[0.03] pointer-events-none overflow-hidden">
-                <div className="absolute inset-0" style={{ backgroundImage: 'linear-gradient(to right, #fff 1px, transparent 1px), linear-gradient(to bottom, #fff 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+              <div className="absolute inset-0" style={{ backgroundImage: 'linear-gradient(to right, #fff 1px, transparent 1px), linear-gradient(to bottom, #fff 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
             </div>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={burndownData}>
@@ -168,21 +171,21 @@ const Analytics: React.FC = () => {
                 <XAxis dataKey="day" stroke="#475569" fontSize={10} tickLine={false} axisLine={false} dy={10} tick={{ fontFamily: 'JetBrains Mono, monospace' }} />
                 <YAxis stroke="#475569" fontSize={10} tickLine={false} axisLine={false} dx={-10} tick={{ fontFamily: 'JetBrains Mono, monospace' }} />
                 <Tooltip content={<CustomTooltip />} />
-                <Legend 
-                    verticalAlign="top" 
-                    align="right" 
-                    iconType="rect" 
-                    wrapperStyle={{ paddingBottom: '30px', fontFamily: 'JetBrains Mono, monospace', fontSize: '10px', textTransform: 'uppercase', opacity: 0.6 }} 
+                <Legend
+                  verticalAlign="top"
+                  align="right"
+                  iconType="rect"
+                  wrapperStyle={{ paddingBottom: '30px', fontFamily: 'JetBrains Mono, monospace', fontSize: '10px', textTransform: 'uppercase', opacity: 0.6 }}
                 />
                 <Line type="stepAfter" dataKey="ideal" stroke="#334155" strokeDasharray="3 3" dot={false} strokeWidth={1} name="Theoretical Limit" />
-                <Line 
-                    type="monotone" 
-                    dataKey="actual" 
-                    stroke="#06b6d4" 
-                    strokeWidth={3} 
-                    dot={{ r: 3, fill: '#06b6d4', strokeWidth: 0 }} 
-                    activeDot={{ r: 5, fill: '#fff', stroke: '#06b6d4' }} 
-                    name="Actual Vector" 
+                <Line
+                  type="monotone"
+                  dataKey="actual"
+                  stroke="#06b6d4"
+                  strokeWidth={3}
+                  dot={{ r: 3, fill: '#06b6d4', strokeWidth: 0 }}
+                  activeDot={{ r: 5, fill: '#fff', stroke: '#06b6d4' }}
+                  name="Actual Vector"
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -190,7 +193,7 @@ const Analytics: React.FC = () => {
           <div className="mt-6 flex justify-between items-center border-t border-slate-800/50 pt-4">
             <p className="text-[8px] font-mono text-slate-600 uppercase tracking-widest">Scanning sequence: {new Date().toLocaleTimeString()} :: CALIBRATED</p>
             <div className="flex gap-1">
-                {[1, 2, 3].map(i => <div key={i} className="w-4 h-1 bg-cyan-500/20" />)}
+              {[1, 2, 3].map(i => <div key={i} className="w-4 h-1 bg-cyan-500/20" />)}
             </div>
           </div>
         </motion.div>
@@ -205,11 +208,11 @@ const Analytics: React.FC = () => {
           <div className="absolute top-0 right-0 w-1 h-full bg-amber-500/20 group-hover:bg-amber-500/40 transition-colors" />
           <div className="flex items-center justify-between mb-8 relative">
             <h3 className="text-sm font-mono font-black text-white flex items-center gap-3 uppercase tracking-widest">
-              <Calendar className="text-amber-400" size={18} /> 
-              Infrastructure Status <span className="text-[10px] text-slate-600 font-bold tracking-tighter">/ NODE-BREAKDOWN /</span>
+              <Calendar className="text-amber-400" size={18} />
+              {isSadmin ? 'System-wide Node Status' : 'Infrastructure Status'} <span className="text-[10px] text-slate-600 font-bold tracking-tighter">/ NODE-BREAKDOWN /</span>
             </h3>
             <div className="w-8 h-8 rounded bg-slate-800/50 border border-slate-700 flex items-center justify-center">
-                <PieChartIcon size={14} className="text-slate-500" />
+              <PieChartIcon size={14} className="text-slate-500" />
             </div>
           </div>
           <div className="h-[300px] w-full flex items-center justify-center relative">
@@ -227,10 +230,10 @@ const Analytics: React.FC = () => {
                   stroke="none"
                 >
                   {statusData.map((entry: any, index: number) => (
-                    <Cell 
-                        key={`cell-${index}`} 
-                        fill={entry.color} 
-                        className="filter drop-shadow-[0_0_8px_rgba(255,255,255,0.1)] hover:scale-105 transition-transform origin-center cursor-crosshair"
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={entry.color}
+                      className="filter drop-shadow-[0_0_8px_rgba(255,255,255,0.1)] hover:scale-105 transition-transform origin-center cursor-crosshair"
                     />
                   ))}
                 </Pie>
@@ -273,7 +276,7 @@ const Analytics: React.FC = () => {
           <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500/20 group-hover:bg-emerald-500/40 transition-colors" />
           <div className="flex items-center justify-between mb-8 relative">
             <h3 className="text-sm font-mono font-black text-white flex items-center gap-3 uppercase tracking-widest">
-              <Zap className="text-emerald-400" size={18} /> 
+              <Zap className="text-emerald-400" size={18} />
               Cumulative Flow Dynamics <span className="text-[10px] text-slate-600 font-bold tracking-tighter">/ FLOW-LOG /</span>
             </h3>
           </div>
@@ -284,11 +287,11 @@ const Analytics: React.FC = () => {
                 <XAxis dataKey="name" stroke="#475569" fontSize={10} tickLine={false} axisLine={false} dy={10} tick={{ fontFamily: 'JetBrains Mono, monospace' }} />
                 <YAxis stroke="#475569" fontSize={10} tickLine={false} axisLine={false} dx={-10} tick={{ fontFamily: 'JetBrains Mono, monospace' }} />
                 <Tooltip content={<CustomTooltip />} />
-                <Legend 
-                    verticalAlign="top" 
-                    align="right" 
-                    iconType="rect" 
-                    wrapperStyle={{ paddingBottom: '30px', fontFamily: 'JetBrains Mono, monospace', fontSize: '10px', textTransform: 'uppercase', opacity: 0.6 }} 
+                <Legend
+                  verticalAlign="top"
+                  align="right"
+                  iconType="rect"
+                  wrapperStyle={{ paddingBottom: '30px', fontFamily: 'JetBrains Mono, monospace', fontSize: '10px', textTransform: 'uppercase', opacity: 0.6 }}
                 />
                 <Area type="stepBefore" dataKey="Done" stackId="1" stroke="#10b981" fill="#10b981" fillOpacity={0.2} name="Finalized" />
                 <Area type="stepBefore" dataKey="In Progress" stackId="1" stroke="#06b6d4" fill="#06b6d4" fillOpacity={0.2} name="Executing" />
@@ -308,8 +311,8 @@ const Analytics: React.FC = () => {
           <div className="absolute top-0 right-0 w-1 h-full bg-cyan-500/20 group-hover:bg-cyan-500/40 transition-colors" />
           <div className="flex items-center justify-between mb-8 relative">
             <h3 className="text-sm font-mono font-black text-white flex items-center gap-3 uppercase tracking-widest">
-              <Users className="text-cyan-400" size={18} /> 
-              Member Output Matrix <span className="text-[10px] text-slate-600 font-bold tracking-tighter">/ NODE-PERF /</span>
+              <Users className="text-cyan-400" size={18} />
+              {isSadmin ? 'Tasks Assigned per Member' : 'Member Output Matrix'} <span className="text-[10px] text-slate-600 font-bold tracking-tighter">/ NODE-PERF /</span>
             </h3>
           </div>
           <div className="h-[300px] w-full">
@@ -349,7 +352,7 @@ const Analytics: React.FC = () => {
           <div className="absolute top-0 left-0 w-1 h-full bg-rose-500/20 group-hover:bg-rose-500/40 transition-colors" />
           <div className="flex items-center justify-between mb-8 relative">
             <h3 className="text-sm font-mono font-black text-white flex items-center gap-3 uppercase tracking-widest">
-              <AlertCircle className="text-rose-500" size={18} /> 
+              <AlertCircle className="text-rose-500" size={18} />
               Priority Distribution Matrix <span className="text-[10px] text-slate-600 font-bold tracking-tighter">/ RISK-LVL /</span>
             </h3>
           </div>
@@ -380,8 +383,8 @@ const Analytics: React.FC = () => {
           <div className="absolute top-0 right-0 w-1 h-full bg-emerald-500/20 group-hover:bg-emerald-500/40 transition-colors" />
           <div className="flex items-center justify-between mb-8 relative">
             <h3 className="text-sm font-mono font-black text-white flex items-center gap-3 uppercase tracking-widest">
-              <BarChart3 className="text-emerald-400" size={18} /> 
-              Vector Effort Distribution <span className="text-[10px] text-slate-600 font-bold tracking-tighter">/ RADAR-TRK /</span>
+              <BarChart3 className="text-emerald-400" size={18} />
+              {isSadmin ? 'Project Participation Matrix' : 'Vector Effort Distribution'} <span className="text-[10px] text-slate-600 font-bold tracking-tighter">/ RADAR-TRK /</span>
             </h3>
           </div>
           <div className="h-[300px] w-full">
@@ -389,27 +392,27 @@ const Analytics: React.FC = () => {
               <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
                 <PolarGrid stroke="#334155" strokeDasharray="3 3" />
                 <PolarAngleAxis dataKey="subject" stroke="#475569" fontSize={10} tick={{ fontFamily: 'JetBrains Mono, monospace', textTransform: 'uppercase' }} />
-                <PolarRadiusAxis 
-                    angle={30} 
-                    domain={[0, 15]} 
-                    stroke="#475569" 
-                    fontSize={8} 
-                    axisLine={false} 
-                    tick={false} 
+                <PolarRadiusAxis
+                  angle={30}
+                  domain={[0, 15]}
+                  stroke="#475569"
+                  fontSize={8}
+                  axisLine={false}
+                  tick={false}
                 />
-                <Radar 
-                    name="Team Effort" 
-                    dataKey="A" 
-                    stroke="#10b981" 
-                    fill="#10b981" 
-                    fillOpacity={0.2} 
-                    animationDuration={2000}
+                <Radar
+                  name="Team Effort"
+                  dataKey="A"
+                  stroke="#10b981"
+                  fill="#10b981"
+                  fillOpacity={0.2}
+                  animationDuration={2000}
                 />
-                <Legend 
-                    verticalAlign="bottom" 
-                    align="center" 
-                    iconType="rect" 
-                    wrapperStyle={{ paddingTop: '20px', fontFamily: 'JetBrains Mono, monospace', fontSize: '10px', textTransform: 'uppercase' }} 
+                <Legend
+                  verticalAlign="bottom"
+                  align="center"
+                  iconType="rect"
+                  wrapperStyle={{ paddingTop: '20px', fontFamily: 'JetBrains Mono, monospace', fontSize: '10px', textTransform: 'uppercase' }}
                 />
                 <Tooltip content={<CustomTooltip />} />
               </RadarChart>

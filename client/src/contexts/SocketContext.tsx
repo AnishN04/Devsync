@@ -20,13 +20,27 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         auth: { token: accessToken },
       });
 
-      newSocket.on('connect', () => setIsConnected(true));
-      newSocket.on('disconnect', () => setIsConnected(false));
+      newSocket.on('connect', () => {
+        console.log('✅ Socket connected');
+        setIsConnected(true);
+      });
+      newSocket.on('disconnect', () => {
+        console.log('❌ Socket disconnected');
+        setIsConnected(false);
+      });
+      newSocket.on('connect_error', (err) => {
+        console.error('⚠️ Socket connect error:', err.message);
+        setIsConnected(false);
+      });
 
       setSocket(newSocket);
 
       return () => {
-        newSocket.close();
+        console.log('🔌 Closing socket connection...');
+        newSocket.off('connect');
+        newSocket.off('disconnect');
+        newSocket.off('connect_error');
+        newSocket.disconnect(); // Explicitly disconnect
       };
     } else {
       setSocket(null);

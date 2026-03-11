@@ -10,7 +10,7 @@ const comparePassword = async (plain, hash) => bcrypt.compare(plain, hash);
 
 const generateAccessToken = (user) =>
     jwt.sign(
-        { id: user.id, name: user.name, email: user.email, role: user.role, github_username: user.github_username },
+        { id: user.id, name: user.name, email: user.email, role: user.role, github_username: user.github_username, org_id: user.org_id },
         env.JWT_SECRET,
         { expiresIn: env.JWT_EXPIRES_IN }
     );

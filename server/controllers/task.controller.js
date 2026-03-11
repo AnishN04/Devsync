@@ -5,7 +5,7 @@ const getTasksByProject = async (req, res, next) => {
     try {
         const { projectId } = req.query;
         if (!projectId) return res.status(400).json({ message: 'projectId query param is required' });
-        const tasks = await taskService.getTasksByProject(Number(projectId), req.user.id);
+        const tasks = await taskService.getTasksByProject(Number(projectId), req.user.id, req.user.org_id);
         res.json(tasks);
     } catch (err) {
         next(err);
@@ -19,7 +19,8 @@ const createTask = async (req, res, next) => {
 
         const task = await taskService.createTask(
             { projectId: Number(projectId), title, description, status, priority, assignedTo, dueDate },
-            req.user.id
+            req.user.id,
+            req.user.org_id
         );
 
         const io = req.app.get('io');
@@ -37,7 +38,8 @@ const updateTask = async (req, res, next) => {
         const updatedTask = await taskService.updateTask(
             Number(req.params.id),
             { title, description, status, priority, assignedTo, dueDate },
-            req.user.id
+            req.user.id,
+            req.user.org_id
         );
 
         const io = req.app.get('io');
@@ -67,7 +69,7 @@ const updateTask = async (req, res, next) => {
 const deleteTask = async (req, res, next) => {
     try {
         console.log('DEBUG: deleteTask params:', { id: req.params.id, userId: req.user.id, userRole: req.user.role });
-        const deleted = await taskService.deleteTask(Number(req.params.id), req.user.id, req.user.role);
+        const deleted = await taskService.deleteTask(Number(req.params.id), req.user.id, req.user.role, req.user.org_id);
         console.log('DEBUG: deleteTask result:', deleted);
 
         const io = req.app.get('io');

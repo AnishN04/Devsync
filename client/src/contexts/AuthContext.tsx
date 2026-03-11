@@ -5,9 +5,11 @@ interface User {
   id: string;
   name: string;
   email: string;
-  role: 'Admin' | 'Manager' | 'Developer' | 'Viewer';
+  role: 'Admin' | 'Manager' | 'Developer' | 'sadmin';
   avatar?: string;
   github_username?: string;
+  onboarded: boolean;
+  onboarding_type?: string;
 }
 
 interface AuthContextType {
@@ -17,6 +19,8 @@ interface AuthContextType {
   register: (data: any) => Promise<void>;
   completeOAuth: (accessToken: string, refreshToken: string) => Promise<void>;
   logout: () => void;
+  refreshProfile: () => Promise<void>;
+  updateTokens: (accessToken: string, refreshToken: string) => Promise<void>;
   isLoading: boolean;
   isAuthenticated: boolean;
 }
@@ -51,15 +55,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('accessToken', res.data.accessToken);
     localStorage.setItem('refreshToken', res.data.refreshToken);
     setAccessToken(res.data.accessToken);
-    setUser(res.data.user);
+
+    // Fetch full profile to get onboarding status
+    const profileRes = await api.get('/auth/me');
+    setUser(profileRes.data);
   };
 
   const register = async (data: any) => {
-    const res = await api.post('/auth/register', data);
-    localStorage.setItem('accessToken', res.data.accessToken);
-    localStorage.setItem('refreshToken', res.data.refreshToken);
-    setAccessToken(res.data.accessToken);
-    setUser(res.data.user);
+    await api.post('/auth/register', data);
   };
 
   const completeOAuth = async (at: string, rt: string) => {
@@ -87,16 +90,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
   };
 
+  const refreshProfile = async () => {
+    try {
+      const res = await api.get('/auth/me');
+      setUser(res.data);
+    } catch (err) {
+      console.error('Profile refresh failed:', err);
+    }
+  };
+
+  const updateTokens = async (at: string, rt: string) => {
+    localStorage.setItem('accessToken', at);
+    localStorage.setItem('refreshToken', rt);
+    setAccessToken(at);
+    
+    // Refresh user state with new token payload
+    const res = await api.get('/auth/me');
+    setUser(res.data);
+  };
+
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      accessToken, 
-      login, 
-      register, 
-      completeOAuth, 
-      logout, 
+    <AuthContext.Provider value={{
+      user,
+      accessToken,
+      login,
+      register,
+      completeOAuth,
+      logout,
+      refreshProfile,
+      updateTokens,
       isLoading,
-      isAuthenticated: !!user 
+      isAuthenticated: !!user
     }}>
       {children}
     </AuthContext.Provider>

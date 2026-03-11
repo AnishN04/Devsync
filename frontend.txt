@@ -270,12 +270,12 @@ export default api;
 
 ```js
 const permissions = {
-  createProject:  ['Admin', 'Manager'],
-  deleteProject:  ['Admin'],
-  manageMembers:  ['Admin', 'Manager'],
-  createTask:     ['Admin', 'Manager', 'Developer'],
-  deleteTask:     ['Admin', 'Manager'],
-  viewOnly:       ['Admin', 'Manager', 'Developer', 'Viewer'],
+  createProject:  ['Admin', 'sadmin', 'Manager'],
+  deleteProject:  ['Admin', 'sadmin'],
+  manageMembers:  ['Admin', 'sadmin', 'Manager'],
+  createTask:     ['Admin', 'sadmin', 'Manager', 'Developer'],
+  deleteTask:     ['Admin', 'sadmin', 'Manager'],
+  viewOnly:       ['Admin', 'sadmin', 'Manager', 'Developer'],
 };
 
 export const hasPermission = (userRole, action) => {

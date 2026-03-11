@@ -1,10 +1,10 @@
 const projectModel = require('../models/project.model');
 const memberModel = require('../models/member.model');
 
-const getAllProjects = async (userId) => projectModel.findForUser(userId);
+const getAllProjects = async (userId, orgId) => projectModel.findForUser(userId, orgId);
 
-const getProjectById = async (id, userId) => {
-    const project = await projectModel.findById(id);
+const getProjectById = async (id, userId, orgId) => {
+    const project = await projectModel.findById(id, orgId);
     if (!project) throw Object.assign(new Error('Project not found'), { status: 404 });
 
     // Check access: owner or member
@@ -15,15 +15,15 @@ const getProjectById = async (id, userId) => {
     return project;
 };
 
-const createProject = async ({ title, description, ownerId }) => {
-    const project = await projectModel.create({ title, description, ownerId });
+const createProject = async ({ title, description, ownerId, orgId }) => {
+    const project = await projectModel.create({ title, description, ownerId, orgId });
     // Auto-add owner as Manager in project_members
     await memberModel.add({ projectId: project.id, userId: ownerId, role: 'Manager' });
     return project;
 };
 
-const updateProject = async (id, updates, userId) => {
-    const project = await projectModel.findById(id);
+const updateProject = async (id, updates, userId, orgId) => {
+    const project = await projectModel.findById(id, orgId);
     if (!project) throw Object.assign(new Error('Project not found'), { status: 404 });
     if (project.owner_id !== userId) {
         const membership = await memberModel.findMembership(id, userId);
@@ -34,8 +34,8 @@ const updateProject = async (id, updates, userId) => {
     return projectModel.update(id, updates);
 };
 
-const deleteProject = async (id, userId, userRole) => {
-    const project = await projectModel.findById(id);
+const deleteProject = async (id, userId, userRole, orgId) => {
+    const project = await projectModel.findById(id, orgId);
     if (!project) throw Object.assign(new Error('Project not found'), { status: 404 });
 
     if (userRole !== 'Admin' && project.owner_id !== userId) {
@@ -45,15 +45,12 @@ const deleteProject = async (id, userId, userRole) => {
     return projectModel.remove(id);
 };
 
-const addMemberToProject = async (projectId, userIdentifier, role, requestingUserId, requestingUserRole) => {
-    const project = await projectModel.findById(projectId);
+const addMemberToProject = async (projectId, userIdentifier, role, requestingUserId, requestingUserRole, orgId) => {
+    const project = await projectModel.findById(projectId, orgId);
     if (!project) throw Object.assign(new Error('Project not found'), { status: 404 });
 
-    if (requestingUserRole !== 'Admin' && project.owner_id !== requestingUserId) {
-        const membership = await memberModel.findMembership(projectId, requestingUserId);
-        if (!membership || membership.role !== 'Manager') {
-            throw Object.assign(new Error('Only Managers or Owners can add members'), { status: 403 });
-        }
+    if (requestingUserRole !== 'Admin' && requestingUserRole !== 'sadmin') {
+        throw Object.assign(new Error('Only Admins or Super Admins can add members'), { status: 403 });
     }
 
     const { query } = require('../config/db');

@@ -60,7 +60,6 @@ const Login: React.FC = () => {
             <Layers className="text-white w-10 h-10" />
           </motion.div>
           <h1 className="text-5xl font-heading font-black text-white mb-3 tracking-tighter uppercase italic">DevSync</h1>
-          <p className="text-slate-500 font-bold uppercase tracking-[0.4em] text-[10px]">Cloud Infrastructure Protocol v2.5</p>
         </div>
 
         <div className="glass-card p-10 bg-bg-card/40 backdrop-blur-3xl border-white/5 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)] relative overflow-hidden group">

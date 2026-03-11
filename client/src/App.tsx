@@ -9,8 +9,28 @@ import Dashboard from './pages/Dashboard';
 import ProjectDetail from './pages/ProjectDetail';
 import Analytics from './pages/Analytics';
 import Settings from './pages/Settings';
+import Onboarding from './pages/Onboarding';
 import AuthCallback from './pages/AuthCallback';
 import InviteLanding from './pages/InviteLanding';
+import { useAuth } from './contexts/AuthContext';
+
+function IndexRedirect() {
+  const { user } = useAuth();
+  if (!user) return <Navigate to="/login" replace />;
+  if (!user.onboarded) return <Navigate to="/onboarding" replace />;
+  if (user.role === 'sadmin') {
+    return <Navigate to="/analytics" replace />;
+  }
+  return <Dashboard />;
+}
+
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { user, isLoading } = useAuth();
+  if (isLoading) return null;
+  if (!user) return <Navigate to="/login" replace />;
+  if (!user.onboarded) return <Navigate to="/onboarding" replace />;
+  return <>{children}</>;
+}
 
 export default function App() {
   return (
@@ -29,12 +49,13 @@ export default function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/invitations/accept/:token" element={<InviteLanding />} />
+            <Route path="/onboarding" element={<Onboarding />} />
 
             <Route path="/" element={<Layout />}>
-              <Route index element={<Dashboard />} />
-              <Route path="projects/:id" element={<ProjectDetail />} />
-              <Route path="analytics" element={<Analytics />} />
-              <Route path="settings" element={<Settings />} />
+              <Route index element={<IndexRedirect />} />
+              <Route path="projects/:id" element={<ProtectedRoute><ProjectDetail /></ProtectedRoute>} />
+              <Route path="analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+              <Route path="settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             </Route>
 
             <Route path="*" element={<Navigate to="/" replace />} />

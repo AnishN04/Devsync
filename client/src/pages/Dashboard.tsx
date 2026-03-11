@@ -10,9 +10,15 @@ import api from '../services/axios';
 import { useAuth } from '../contexts/AuthContext';
 
 const Dashboard: React.FC = () => {
+  const { user } = useAuth();
+
+  // sadmin has no dashboard
+  if (user?.role === 'sadmin') {
+    return null;
+  }
+
   const { projects, refreshProjects, isLoading: projectsLoading } = useProjects();
   const { analytics } = useAnalytics();
-  const { user } = useAuth();
   const [menuOpenProjectId, setMenuOpenProjectId] = React.useState<number | null>(null);
   const [showAll, setShowAll] = React.useState(false);
 
@@ -141,7 +147,7 @@ const Dashboard: React.FC = () => {
             </button>
           )}
           <button className="btn-primary flex items-center gap-2 group">
-            <Plus size={20} className="group-hover:rotate-90 transition-transform" /> 
+            <Plus size={20} className="group-hover:rotate-90 transition-transform" />
             <span className="uppercase tracking-widest text-xs font-black">New Project</span>
           </button>
         </div>
@@ -158,7 +164,7 @@ const Dashboard: React.FC = () => {
             className="glass-card p-8 group cursor-default relative overflow-hidden"
           >
             <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                <stat.icon size={80} className={stat.color} />
+              <stat.icon size={80} className={stat.color} />
             </div>
             <div className="flex items-center justify-between mb-6">
               <div className={cn("p-4 rounded-2xl glow-border shadow-2xl", stat.bg)}>
@@ -231,7 +237,7 @@ const Dashboard: React.FC = () => {
                       {/* Dropdown Menu */}
                       <AnimatePresence>
                         {menuOpenProjectId === project.id && (
-                          <motion.div 
+                          <motion.div
                             initial={{ opacity: 0, scale: 0.9, y: 5 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.9, y: 5 }}
@@ -263,17 +269,36 @@ const Dashboard: React.FC = () => {
                   </p>
 
                   <div className="space-y-4 bg-white/5 p-4 rounded-2xl border border-white/5 group-hover:bg-white/[0.08] transition-colors">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Project Completion</span>
-                      <span className="text-xs font-black text-indigo-400 tracking-tighter">{project.progress}%</span>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Priority Backlog</span>
+                      <div className="flex items-center gap-1.5">
+                        <TrendingUp size={10} className="text-indigo-400" />
+                        <span className="text-[10px] font-black text-indigo-400 tracking-tighter">{project.progress}%</span>
+                      </div>
                     </div>
-                    <div className="h-2.5 bg-black/20 rounded-full overflow-hidden p-0.5">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${project.progress}%` }}
-                        transition={{ duration: 1.5, cubicBezier: [0.16, 1, 0.3, 1], delay: 0.8 }}
-                        className="h-full bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 rounded-full shadow-[0_0_12px_rgba(99,102,241,0.4)]"
-                      />
+                    <div className="space-y-2">
+                      {project.priority_tasks && project.priority_tasks.length > 0 ? (
+                        project.priority_tasks.map((task: any) => (
+                          <div key={task.id} className="flex items-center justify-between gap-3 p-2.5 bg-black/20 rounded-xl border border-white/5 hover:border-indigo-500/20 transition-all group/task">
+                            <span className="text-[10px] font-black text-slate-300 truncate flex-1 uppercase tracking-tight group-hover/task:text-white transition-colors">
+                              {task.title}
+                            </span>
+                            <span className={cn(
+                              "text-[7px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md shadow-sm",
+                              task.priority === 'High' ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20' :
+                                task.priority === 'Medium' ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' :
+                                  'bg-slate-500/10 text-slate-500 border border-slate-500/20'
+                            )}>
+                              {task.priority}
+                            </span>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="py-4 flex flex-col items-center justify-center opacity-40">
+                          <CheckCircle2 size={16} className="text-slate-600 mb-2" />
+                          <span className="text-[8px] font-black uppercase tracking-widest text-slate-600">No Priority Tasks</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </Link>
@@ -327,10 +352,10 @@ const Dashboard: React.FC = () => {
               {/* Repo list */}
               {isFetchingRepos ? (
                 <div className="flex flex-col items-center justify-center py-16 gap-4">
-                    <div className="relative">
-                        <div className="w-12 h-12 border-4 border-indigo-500/10 border-t-indigo-500 rounded-full animate-spin" />
-                        <div className="absolute inset-0 w-12 h-12 border-4 border-transparent border-b-violet-500/30 rounded-full animate-[spin_2s_linear_infinite]" />
-                    </div>
+                  <div className="relative">
+                    <div className="w-12 h-12 border-4 border-indigo-500/10 border-t-indigo-500 rounded-full animate-spin" />
+                    <div className="absolute inset-0 w-12 h-12 border-4 border-transparent border-b-violet-500/30 rounded-full animate-[spin_2s_linear_infinite]" />
+                  </div>
                   <p className="text-xs text-slate-500 font-black uppercase tracking-widest animate-pulse">Scanning GitHub Registry…</p>
                 </div>
               ) : (
@@ -389,15 +414,15 @@ const Dashboard: React.FC = () => {
                             {repo.description ? (
                               <p className="text-[11px] font-medium text-slate-500 truncate leading-relaxed group-hover:text-slate-400 transition-colors">{repo.description}</p>
                             ) : (
-                                <p className="text-[11px] font-medium italic text-slate-600 group-hover:text-slate-500 transition-colors">No description provided</p>
+                              <p className="text-[11px] font-medium italic text-slate-600 group-hover:text-slate-500 transition-colors">No description provided</p>
                             )}
                           </div>
-                          
+
                           {isSelected && (
-                              <motion.div 
-                                layoutId={`repo-bg-${repo.id}`}
-                                className="absolute inset-0 bg-gradient-to-r from-indigo-600/5 to-transparent pointer-events-none" 
-                              />
+                            <motion.div
+                              layoutId={`repo-bg-${repo.id}`}
+                              className="absolute inset-0 bg-gradient-to-r from-indigo-600/5 to-transparent pointer-events-none"
+                            />
                           )}
                         </button>
                       );

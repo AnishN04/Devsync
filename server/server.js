@@ -21,6 +21,62 @@ const session = require('express-session');
 const passport = require('passport');
 require('./config/passport');
 
+// Temporary DB Migration for Onboarding
+const { query: dbQuery } = require('./config/db');
+(async () => {
+    try {
+        const hasColumn = await dbQuery(`
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name='users' AND column_name='onboarded'
+        `);
+
+        if (hasColumn.rows.length === 0) {
+            await dbQuery(`ALTER TABLE users ADD COLUMN onboarded BOOLEAN DEFAULT FALSE`);
+            await dbQuery(`ALTER TABLE users ADD COLUMN onboarding_type VARCHAR(20)`);
+            await dbQuery(`UPDATE users SET onboarded = TRUE`);
+            console.log('✅ Database onboarding fields added');
+        }
+
+        // Add Organizations table
+        await dbQuery(`
+            CREATE TABLE IF NOT EXISTS organizations (
+                id SERIAL PRIMARY KEY,
+                name VARCHAR(150) NOT NULL,
+                slug VARCHAR(150) UNIQUE,
+                created_at TIMESTAMP DEFAULT NOW()
+            )
+        `);
+
+        // Add org_id to users
+        await dbQuery(`ALTER TABLE users ADD COLUMN IF NOT EXISTS org_id INTEGER REFERENCES organizations(id) ON DELETE SET NULL`);
+
+        // Add org_id to projects
+        await dbQuery(`ALTER TABLE projects ADD COLUMN IF NOT EXISTS org_id INTEGER REFERENCES organizations(id) ON DELETE SET NULL`);
+
+        // Add org_invitations
+        await dbQuery(`
+            CREATE TABLE IF NOT EXISTS org_invitations (
+                id SERIAL PRIMARY KEY,
+                org_id INTEGER REFERENCES organizations(id) ON DELETE CASCADE,
+                email VARCHAR(150) NOT NULL,
+                token VARCHAR(255) UNIQUE NOT NULL,
+                role VARCHAR(20) NOT NULL,
+                invited_by INTEGER REFERENCES users(id) ON DELETE CASCADE,
+                created_at TIMESTAMP DEFAULT NOW(),
+                expires_at TIMESTAMP NOT NULL,
+                accepted_at TIMESTAMP,
+                UNIQUE(org_id, email)
+            )
+        `);
+
+        // Ensure any existing users skip onboarding if column exists but values missing
+        await dbQuery(`UPDATE users SET onboarded = TRUE WHERE onboarded IS FALSE AND onboarding_type IS NULL`);
+    } catch (err) {
+        console.error('⚠️ Database migration notice (onboarding):', err.message);
+    }
+})();
+
 const app = express();
 const server = http.createServer(app);   // wrap Express in HTTP server
 const io = new Server(server, {

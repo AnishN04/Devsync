@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 
 const InviteLanding: React.FC = () => {
     const { token } = useParams<{ token: string }>();
-    const { isAuthenticated, user, isLoading: authLoading } = useAuth();
+    const { isAuthenticated, user, isLoading: authLoading, updateTokens } = useAuth();
     const navigate = useNavigate();
     const [invite, setInvite] = useState<any>(null);
     const [loading, setLoading] = useState(true);
@@ -17,7 +17,7 @@ const InviteLanding: React.FC = () => {
     useEffect(() => {
         const fetchInviteDetails = async () => {
             try {
-                const res = await api.get(`/invitations/details/${token}`);
+                const res = await api.get(`/auth/invite-details/${token}`);
                 setInvite(res.data);
             } catch (err: any) {
                 setError(err.response?.data?.message || 'Invalid or expired invitation link');
@@ -50,9 +50,13 @@ const InviteLanding: React.FC = () => {
 
         setAccepting(true);
         try {
-            await api.post(`/invitations/accept/${token}`);
-            toast.success(`Welcome to ${invite.project_name}!`);
-            navigate(`/projects/${invite.project_id}`);
+            const res = await api.post(`/auth/accept-invite`, { token });
+            // Sync with new tokens that contain updated role/org_id
+            if (res.data.accessToken && res.data.refreshToken) {
+                await updateTokens(res.data.accessToken, res.data.refreshToken);
+            }
+            toast.success(`Welcome to ${invite.org_name}!`);
+            navigate(`/`);
         } catch (err: any) {
             toast.error(err.response?.data?.message || 'Failed to accept invitation');
         } finally {
@@ -97,9 +101,9 @@ const InviteLanding: React.FC = () => {
                     <Mail className="text-indigo-400" size={40} />
                 </div>
 
-                <h1 className="text-2xl font-heading font-black text-white mb-2">Project Invitation</h1>
+                <h1 className="text-2xl font-heading font-black text-white mb-2">Organization Invitation</h1>
                 <p className="text-slate-400 mb-8">
-                    You've been invited to join <span className="text-indigo-400 font-bold">{invite?.project_name}</span> as a <span className="text-white font-bold">{invite?.role}</span>.
+                    You've been invited to join <span className="text-indigo-400 font-bold">{invite?.org_name}</span> as a <span className="text-white font-bold">{invite?.role}</span>.
                 </p>
 
                 <div className="space-y-4">

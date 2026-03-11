@@ -73,7 +73,7 @@ CREATE TABLE users (
   name          VARCHAR(100) NOT NULL,
   email         VARCHAR(150) UNIQUE NOT NULL,
   password_hash TEXT NOT NULL,
-  role          VARCHAR(20) CHECK (role IN ('Admin', 'Manager', 'Developer', 'Viewer')) DEFAULT 'Developer',
+  role          VARCHAR(20) CHECK (role IN ('Admin', 'Manager', 'Developer', 'sadmin')) DEFAULT 'Developer',
   created_at    TIMESTAMP DEFAULT NOW()
 );
 
@@ -91,7 +91,7 @@ CREATE TABLE project_members (
   id          SERIAL PRIMARY KEY,
   project_id  INTEGER REFERENCES projects(id) ON DELETE CASCADE,
   user_id     INTEGER REFERENCES users(id) ON DELETE CASCADE,
-  role        VARCHAR(20) CHECK (role IN ('Manager', 'Developer', 'Viewer')) NOT NULL,
+  role        VARCHAR(20) CHECK (role IN ('Manager', 'Developer')) NOT NULL,
   joined_at   TIMESTAMP DEFAULT NOW(),
   UNIQUE(project_id, user_id)
 );
@@ -251,15 +251,15 @@ router.get('/projects',        verifyToken,                                     
 
 ## 👥 RBAC — Roles & Permissions
 
-| Permission           | Admin | Manager | Developer | Viewer |
-|----------------------|:-----:|:-------:|:---------:|:------:|
-| Create Project       | ✅    | ✅      | ❌        | ❌     |
-| Delete Project       | ✅    | ❌      | ❌        | ❌     |
-| Manage Members       | ✅    | ✅      | ❌        | ❌     |
-| Create Task          | ✅    | ✅      | ✅        | ❌     |
-| Update Task Status   | ✅    | ✅      | ✅        | ❌     |
-| Delete Task          | ✅    | ✅      | ❌        | ❌     |
-| View Projects/Tasks  | ✅    | ✅      | ✅        | ✅     |
+| Permission           | Admin | sadmin | Manager | Developer |
+|----------------------|:-----:|:------:|:-------:|:---------:|
+| Create Project       | ✅    | ✅     | ✅      | ❌        |
+| Delete Project       | ✅    | ✅     | ❌      | ❌        |
+| Manage Members       | ✅    | ✅     | ✅      | ❌        |
+| Create Task          | ✅    | ✅     | ✅      | ✅        |
+| Update Task Status   | ✅    | ✅     | ✅      | ✅        |
+| Delete Task          | ✅    | ✅     | ✅      | ❌        |
+| View Projects/Tasks  | ✅    | ✅     | ✅      | ✅        |
 
 ---
 

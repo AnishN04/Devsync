@@ -7,9 +7,23 @@ CREATE TABLE IF NOT EXISTS users (
   name          VARCHAR(100) NOT NULL,
   email         VARCHAR(150) UNIQUE NOT NULL,
   password_hash TEXT NOT NULL,
-  role          VARCHAR(20) CHECK (role IN ('Admin', 'Manager', 'Developer', 'Viewer')) DEFAULT 'Developer',
+  role          VARCHAR(20) CHECK (role IN ('Admin', 'Manager', 'Developer', 'sadmin')) DEFAULT 'Developer',
+  onboarded       BOOLEAN DEFAULT FALSE,
+  onboarding_type VARCHAR(20),
+  org_id          INTEGER,
   created_at    TIMESTAMP DEFAULT NOW()
 );
+
+-- Organizations table
+CREATE TABLE IF NOT EXISTS organizations (
+  id          SERIAL PRIMARY KEY,
+  name        VARCHAR(150) NOT NULL,
+  slug        VARCHAR(150) UNIQUE,
+  created_at  TIMESTAMP DEFAULT NOW()
+);
+
+-- Add foreign key to users
+ALTER TABLE users ADD CONSTRAINT fk_user_org FOREIGN KEY (org_id) REFERENCES organizations(id) ON DELETE SET NULL;
 
 -- Projects table
 CREATE TABLE IF NOT EXISTS projects (
@@ -17,6 +31,7 @@ CREATE TABLE IF NOT EXISTS projects (
   title       VARCHAR(200) NOT NULL,
   description TEXT,
   owner_id    INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  org_id      INTEGER REFERENCES organizations(id) ON DELETE SET NULL,
   created_at  TIMESTAMP DEFAULT NOW()
 );
 
@@ -100,4 +115,18 @@ CREATE TABLE IF NOT EXISTS invitations (
   expires_at    TIMESTAMP NOT NULL,
   accepted_at   TIMESTAMP,
   UNIQUE(project_id, email)
+);
+
+-- Organization invitations
+CREATE TABLE IF NOT EXISTS org_invitations (
+  id            SERIAL PRIMARY KEY,
+  org_id        INTEGER REFERENCES organizations(id) ON DELETE CASCADE,
+  email         VARCHAR(150) NOT NULL,
+  token         VARCHAR(255) UNIQUE NOT NULL,
+  role          VARCHAR(20) NOT NULL,
+  invited_by    INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  created_at    TIMESTAMP DEFAULT NOW(),
+  expires_at    TIMESTAMP NOT NULL,
+  accepted_at   TIMESTAMP,
+  UNIQUE(org_id, email)
 );

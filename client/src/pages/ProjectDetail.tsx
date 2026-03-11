@@ -105,7 +105,7 @@ const TaskCard: React.FC<{
       )}
     >
       <div className="absolute top-0 right-0 w-24 h-24 bg-white/[0.02] rounded-full -mr-12 -mt-12 group-hover:bg-white/[0.05] transition-colors" />
-      
+
       <div className="flex justify-between items-start mb-3 relative">
         <div className="flex items-center gap-2">
           {/* Dedicated drag handle */}
@@ -147,7 +147,7 @@ const TaskCard: React.FC<{
       {task.description && (
         <p className="text-[11px] font-medium text-slate-500 mb-4 line-clamp-2 leading-relaxed group-hover:text-slate-400 transition-colors">{task.description}</p>
       )}
-      
+
       <div className="flex items-center justify-between pt-3 border-t border-white/5 mt-auto relative">
         <div className="flex items-center gap-2">
           {task.assignee && (
@@ -159,26 +159,26 @@ const TaskCard: React.FC<{
             </div>
           )}
         </div>
-        
+
         <div className="flex items-center gap-3">
-            {task.github_pr_url && (
+          {task.github_pr_url && (
             <a
-                href={task.github_pr_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
-                className="flex items-center gap-1.5 text-[9px] text-indigo-400 font-black uppercase tracking-widest hover:text-indigo-300 transition-all bg-indigo-500/5 px-2 py-1 rounded-lg border border-indigo-500/10"
+              href={task.github_pr_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="flex items-center gap-1.5 text-[9px] text-indigo-400 font-black uppercase tracking-widest hover:text-indigo-300 transition-all bg-indigo-500/5 px-2 py-1 rounded-lg border border-indigo-500/10"
             >
-                <Paperclip size={10} />
-                #{task.github_pr_number}
+              <Paperclip size={10} />
+              #{task.github_pr_number}
             </a>
-            )}
-            {task.dueDate && (
+          )}
+          {task.dueDate && (
             <div className="flex items-center gap-1.5 text-[9px] text-slate-600 font-black uppercase tracking-widest bg-white/5 px-2 py-1 rounded-lg">
-                <Calendar size={10} />
-                {task.dueDate}
+              <Calendar size={10} />
+              {task.dueDate}
             </div>
-            )}
+          )}
         </div>
       </div>
     </div>
@@ -208,7 +208,7 @@ const KanbanColumn: React.FC<{
       className={cn("flex-1 min-w-[380px] flex flex-col h-fit rounded-[2rem] p-6 transition-all border border-white/5 shadow-2xl group/column relative overflow-hidden", bgColor)}
     >
       <div className="absolute top-0 left-0 w-full h-1.5 opacity-40" style={{ background: `linear-gradient(90deg, transparent, currentColor, transparent)`, color: color.split('-')[1] }} />
-      
+
       <div className="flex items-center justify-between mb-8 pb-3 border-b border-white/5">
         <div className="flex items-center gap-3">
           <div className={cn("w-2 h-2 rounded-full shadow-[0_0_10px_rgba(255,255,255,0.5)]", color.replace('border-', 'bg-'))} />
@@ -218,12 +218,12 @@ const KanbanColumn: React.FC<{
           </span>
         </div>
         {canCreate && (
-            <button 
-                onClick={() => onAddTask(id)}
-                className="p-1.5 rounded-xl hover:bg-white/10 text-slate-500 hover:text-white transition-all active:scale-90"
-            >
-                <Plus size={18} />
-            </button>
+          <button
+            onClick={() => onAddTask(id)}
+            className="p-1.5 rounded-xl hover:bg-white/10 text-slate-500 hover:text-white transition-all active:scale-90"
+          >
+            <Plus size={18} />
+          </button>
         )}
       </div>
 
@@ -235,31 +235,31 @@ const KanbanColumn: React.FC<{
         </SortableContext>
 
         <div className="mt-auto space-y-3 pt-4">
-            {showLoadMore ? (
+          {showLoadMore ? (
             <button
-                onClick={onLoadMore}
-                className="w-full py-3 bg-white/5 hover:bg-white/10 text-indigo-400 text-[10px] font-black uppercase tracking-[0.25em] rounded-2xl flex items-center justify-center gap-3 transition-all border border-white/5 active:scale-[0.98] group"
+              onClick={onLoadMore}
+              className="w-full py-3 bg-white/5 hover:bg-white/10 text-indigo-400 text-[10px] font-black uppercase tracking-[0.25em] rounded-2xl flex items-center justify-center gap-3 transition-all border border-white/5 active:scale-[0.98] group"
             >
-                Continue Loading <ArrowDown size={14} className="group-hover:translate-y-1 transition-transform" />
+              Continue Loading <ArrowDown size={14} className="group-hover:translate-y-1 transition-transform" />
             </button>
-            ) : (onShowLess && (totalCount ?? 0) > 4) && (
+          ) : (onShowLess && (totalCount ?? 0) > 4) && (
             <button
-                onClick={onShowLess}
-                className="w-full py-3 bg-white/5 hover:bg-white/10 text-indigo-400 text-[10px] font-black uppercase tracking-[0.25em] rounded-2xl flex items-center justify-center gap-3 transition-all border border-white/5 active:scale-[0.98] group"
+              onClick={onShowLess}
+              className="w-full py-3 bg-white/5 hover:bg-white/10 text-indigo-400 text-[10px] font-black uppercase tracking-[0.25em] rounded-2xl flex items-center justify-center gap-3 transition-all border border-white/5 active:scale-[0.98] group"
             >
-                Show Consolidated <ArrowDown size={14} className="group-hover:-translate-y-1 transition-transform rotate-180" />
+              Show Consolidated <ArrowDown size={14} className="group-hover:-translate-y-1 transition-transform rotate-180" />
             </button>
-            )}
+          )}
 
-            {canCreate && (
+          {canCreate && (
             <button
-                onClick={() => onAddTask(id)}
-                className="w-full py-5 border-2 border-dashed border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-indigo-400 hover:border-indigo-500/30 hover:bg-indigo-500/5 transition-all flex items-center justify-center gap-3 group"
+              onClick={() => onAddTask(id)}
+              className="w-full py-5 border-2 border-dashed border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-indigo-400 hover:border-indigo-500/30 hover:bg-indigo-500/5 transition-all flex items-center justify-center gap-3 group"
             >
-                <Plus size={18} className="group-hover:rotate-90 transition-transform" /> 
-                Initialize Task
+              <Plus size={18} className="group-hover:rotate-90 transition-transform" />
+              Initialize Task
             </button>
-            )}
+          )}
         </div>
       </div>
     </div>
@@ -276,7 +276,7 @@ const ProjectDetail: React.FC = () => {
   const { members, removeMember, addMember, searchGitHubUsers, refreshMembers } = useMembers(id);
   const { onlineUsers } = usePresence(id);
   const { user } = useAuth();
-  const currentUserRole = user?.role || 'Viewer';
+  const currentUserRole = user?.role || 'Developer';
 
   const [activeId, setActiveId] = useState<string | null>(null);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
@@ -352,14 +352,14 @@ const ProjectDetail: React.FC = () => {
       } else {
         // Fallback to sending an email invite
         if (!inviteEmail.includes('@')) {
-           toast.error('Please enter a valid email address for the invitation');
-           setIsInviting(false);
-           return;
+          toast.error('Please enter a valid email address for the invitation');
+          setIsInviting(false);
+          return;
         }
         await api.post('/invitations/send', {
-            projectId: id,
-            email: inviteEmail,
-            role: inviteRole
+          projectId: id,
+          email: inviteEmail,
+          role: inviteRole
         });
         toast.success(`Invitation sent to ${inviteEmail}`);
       }
@@ -475,7 +475,7 @@ const ProjectDetail: React.FC = () => {
   const activeTask = tasks.find(t => t.id === activeId);
 
   const isOwner = project.owner_id === user?.id;
-  const isManager = currentUserRole === 'Admin' || currentUserRole === 'Manager' || isOwner;
+  const isManager = currentUserRole === 'Admin' || currentUserRole === 'sadmin' || currentUserRole === 'Manager' || isOwner;
   const isDeveloper = currentUserRole === 'Developer';
   const canCreate = isManager || isDeveloper;
   const canDelete = isManager;
@@ -498,8 +498,8 @@ const ProjectDetail: React.FC = () => {
                 )}
               </div>
               <div className="flex items-center gap-2">
-                  <TrendingUp size={14} className="text-indigo-400" />
-                  <span className="text-xs font-black text-indigo-400 uppercase tracking-widest">{project.progress}% Optimized</span>
+                <TrendingUp size={14} className="text-indigo-400" />
+                <span className="text-xs font-black text-indigo-400 uppercase tracking-widest">{project.progress}% Optimized</span>
               </div>
             </div>
 
@@ -542,13 +542,15 @@ const ProjectDetail: React.FC = () => {
                 +{members.length - 3}
               </div>
             )}
-            <div
-              onClick={() => setIsInviteModalOpen(true)}
-              className="w-12 h-12 rounded-2xl border-[3px] border-dashed border-white/10 flex items-center justify-center text-slate-600 hover:text-indigo-400 hover:border-indigo-500/40 hover:bg-indigo-500/5 transition-all ml-2 group/invite active:scale-90"
-              title="Invite Contributor"
-            >
-              <UserPlus size={18} className="group-hover/invite:scale-110 transition-transform" />
-            </div>
+            {(currentUserRole === 'Admin' || currentUserRole === 'sadmin') && (
+              <div
+                onClick={() => setIsInviteModalOpen(true)}
+                className="w-12 h-12 rounded-2xl border-[3px] border-dashed border-white/10 flex items-center justify-center text-slate-600 hover:text-indigo-400 hover:border-indigo-500/40 hover:bg-indigo-500/5 transition-all ml-2 group/invite active:scale-90"
+                title="Invite Contributor"
+              >
+                <UserPlus size={18} className="group-hover/invite:scale-110 transition-transform" />
+              </div>
+            )}
           </div>
 
           <button
@@ -660,32 +662,32 @@ const ProjectDetail: React.FC = () => {
                       placeholder="e.g. Architect a high-concurrency microservices layer for global e-commerce scaling..."
                       className="relative w-full bg-bg-dark/80 border border-white/5 rounded-[1.75rem] p-6 text-sm text-white focus:outline-none focus:border-indigo-500/50 min-h-[180px] resize-none transition-all placeholder:text-slate-700 font-medium"
                     />
-                    <button 
-                        onClick={handleAiSubmit} 
-                        disabled={isAiLoading} 
-                        className="absolute bottom-6 right-6 p-4 bg-indigo-600 rounded-2xl text-white hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-600/40 active:scale-90 disabled:opacity-50 group/btn"
+                    <button
+                      onClick={handleAiSubmit}
+                      disabled={isAiLoading}
+                      className="absolute bottom-6 right-6 p-4 bg-indigo-600 rounded-2xl text-white hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-600/40 active:scale-90 disabled:opacity-50 group/btn"
                     >
                       {isAiLoading ? (
-                          <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                       ) : (
-                          <Send size={24} className="group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
+                        <Send size={24} className="group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
                       )}
                     </button>
                   </div>
 
                   <div className="space-y-5 relative">
                     <div className="flex items-center justify-between px-2">
-                        <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Synthesized Suggestions</h4>
-                        {aiSuggestions.length > 0 && <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">{aiSuggestions.length} Results</span>}
+                      <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Synthesized Suggestions</h4>
+                      {aiSuggestions.length > 0 && <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">{aiSuggestions.length} Results</span>}
                     </div>
                     <div className="max-h-64 overflow-y-auto pr-4 custom-scrollbar space-y-4 pb-4">
                       {aiSuggestions.length > 0 ? aiSuggestions.map((suggestion, idx) => (
-                        <motion.div 
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: idx * 0.05 }}
-                            key={idx} 
-                            className="p-6 bg-white/[0.03] rounded-[1.5rem] border border-white/5 hover:border-indigo-500/30 hover:bg-white/[0.08] transition-all cursor-pointer group flex items-center justify-between"
+                        <motion.div
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: idx * 0.05 }}
+                          key={idx}
+                          className="p-6 bg-white/[0.03] rounded-[1.5rem] border border-white/5 hover:border-indigo-500/30 hover:bg-white/[0.08] transition-all cursor-pointer group flex items-center justify-between"
                         >
                           <p className="text-sm font-bold text-slate-300 group-hover:text-white transition-colors tracking-tight uppercase">{suggestion}</p>
                           <div className="p-2 rounded-xl bg-white/5 group-hover:bg-indigo-600 transition-all group-hover:shadow-[0_0_15px_rgba(99,102,241,0.5)]">
@@ -693,10 +695,10 @@ const ProjectDetail: React.FC = () => {
                           </div>
                         </motion.div>
                       )) : (
-                          <div className="py-12 text-center border-2 border-dashed border-white/5 rounded-[2rem]">
-                              <Sparkles className="w-12 h-12 text-slate-800 mx-auto mb-4" />
-                              <p className="text-slate-600 text-xs font-black uppercase tracking-widest">Awaiting prompt input…</p>
-                          </div>
+                        <div className="py-12 text-center border-2 border-dashed border-white/5 rounded-[2rem]">
+                          <Sparkles className="w-12 h-12 text-slate-800 mx-auto mb-4" />
+                          <p className="text-slate-600 text-xs font-black uppercase tracking-widest">Awaiting prompt input…</p>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -729,11 +731,11 @@ const ProjectDetail: React.FC = () => {
                 <div className="flex items-center justify-between mb-10 relative">
                   <div className="flex items-center gap-4">
                     <div className="p-4 bg-white/5 rounded-2xl border border-white/10 glow-border shadow-inner">
-                        <Users size={28} className="text-emerald-400" />
+                      <Users size={28} className="text-emerald-400" />
                     </div>
                     <div>
-                        <h3 className="font-heading font-black text-white text-2xl tracking-tighter uppercase">Project Core Team</h3>
-                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mt-1">Authorized Contributors</p>
+                      <h3 className="font-heading font-black text-white text-2xl tracking-tighter uppercase">Project Core Team</h3>
+                      <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mt-1">Authorized Contributors</p>
                     </div>
                   </div>
                   <button
@@ -748,11 +750,11 @@ const ProjectDetail: React.FC = () => {
                   {members.map((member: any, idx: number) => {
                     const isOnline = onlineUsers.includes(member.user_id?.toString());
                     return (
-                      <motion.div 
+                      <motion.div
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: idx * 0.05 }}
-                        key={member.id} 
+                        key={member.id}
                         className="flex items-center justify-between p-5 rounded-[1.5rem] bg-white/[0.02] border border-white/5 hover:bg-white/[0.08] hover:border-white/10 transition-all group"
                       >
                         <div className="flex items-center gap-5">
@@ -761,7 +763,7 @@ const ProjectDetail: React.FC = () => {
                               {member.name[0]}
                             </div>
                             {isOnline && (
-                                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-4 border-bg-deep shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+                              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-4 border-bg-deep shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
                             )}
                           </div>
                           <div>
@@ -770,16 +772,16 @@ const ProjectDetail: React.FC = () => {
                           </div>
                         </div>
                         <div className="flex flex-col items-end">
-                            <span className={cn("text-[8px] font-black uppercase tracking-widest", isOnline ? "text-emerald-400" : "text-slate-600")}>
-                                {isOnline ? 'Direct Protocol' : 'Legacy Storage'}
-                            </span>
+                          <span className={cn("text-[8px] font-black uppercase tracking-widest", isOnline ? "text-emerald-400" : "text-slate-600")}>
+                            {isOnline ? 'Direct Protocol' : 'Legacy Storage'}
+                          </span>
                         </div>
                       </motion.div>
                     );
                   })}
                 </div>
 
-                {isManager && (
+                {(currentUserRole === 'Admin' || currentUserRole === 'sadmin') && (
                   <button
                     onClick={() => setIsInviteModalOpen(true)}
                     className="w-full mt-10 py-5 rounded-2xl bg-indigo-600 text-white font-black text-[11px] uppercase tracking-[0.25em] hover:bg-indigo-500 transition-all shadow-[0_20px_40px_-5px_rgba(99,102,241,0.5)] active:scale-95 flex items-center justify-center gap-3 group"
@@ -803,33 +805,33 @@ const ProjectDetail: React.FC = () => {
               onClick={() => setIsInviteModalOpen(false)}
               className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4"
             >
-                <motion.div
-                  initial={{ scale: 0.9, opacity: 0, y: 40 }}
-                  animate={{ scale: 1, opacity: 1, y: 0 }}
-                  exit={{ scale: 0.9, opacity: 0, y: 40 }}
-                  transition={{ cubicBezier: [0.16, 1, 0.3, 1], duration: 0.6 }}
-                  onClick={(e) => e.stopPropagation()}
-                  className="w-full max-w-xl glass-card p-12 bg-bg-card/95 backdrop-blur-3xl border-indigo-500/30 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.8)] relative overflow-hidden rounded-[2.5rem]"
-                >
-                  <div className="absolute -top-24 -left-24 w-48 h-48 bg-indigo-600/20 rounded-full blur-[80px]" />
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0, y: 40 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.9, opacity: 0, y: 40 }}
+                transition={{ cubicBezier: [0.16, 1, 0.3, 1], duration: 0.6 }}
+                onClick={(e) => e.stopPropagation()}
+                className="w-full max-w-xl glass-card p-12 bg-bg-card/95 backdrop-blur-3xl border-indigo-500/30 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.8)] relative overflow-hidden rounded-[2.5rem]"
+              >
+                <div className="absolute -top-24 -left-24 w-48 h-48 bg-indigo-600/20 rounded-full blur-[80px]" />
 
-                  <div className="flex items-center justify-between mb-10 relative">
-                    <div className="flex items-center gap-4">
-                      <div className="p-4 bg-white/5 rounded-2xl border border-white/10 glow-border shadow-inner">
-                        <UserPlus size={28} className="text-indigo-400" />
-                      </div>
-                      <div>
-                        <h3 className="font-heading font-black text-white text-2xl tracking-tighter uppercase">Invite Contributor</h3>
-                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mt-1">Network Expansion</p>
-                      </div>
+                <div className="flex items-center justify-between mb-10 relative">
+                  <div className="flex items-center gap-4">
+                    <div className="p-4 bg-white/5 rounded-2xl border border-white/10 glow-border shadow-inner">
+                      <UserPlus size={28} className="text-indigo-400" />
                     </div>
-                    <button
-                      onClick={() => setIsInviteModalOpen(false)}
-                      className="p-2.5 hover:bg-white/10 rounded-2xl text-slate-500 transition-all hover:rotate-90 hover:text-white"
-                    >
-                      <X size={26} />
-                    </button>
+                    <div>
+                      <h3 className="font-heading font-black text-white text-2xl tracking-tighter uppercase">Invite Contributor</h3>
+                      <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mt-1">Network Expansion</p>
+                    </div>
                   </div>
+                  <button
+                    onClick={() => setIsInviteModalOpen(false)}
+                    className="p-2.5 hover:bg-white/10 rounded-2xl text-slate-500 transition-all hover:rotate-90 hover:text-white"
+                  >
+                    <X size={26} />
+                  </button>
+                </div>
 
                 <form onSubmit={handleInvite} className="space-y-6">
                   <div className="space-y-6 relative">
@@ -845,7 +847,7 @@ const ProjectDetail: React.FC = () => {
                           className="w-full bg-bg-dark/80 border border-white/5 rounded-2xl p-5 pl-14 text-sm text-white focus:outline-none focus:border-indigo-500/50 transition-all font-medium placeholder:text-slate-700"
                         />
                         <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-600 transition-colors group-focus-within:text-indigo-400">
-                            <Search size={22} />
+                          <Search size={22} />
                         </div>
                         {isSearchingGithub && (
                           <div className="absolute right-5 top-1/2 -translate-y-1/2">
@@ -855,10 +857,10 @@ const ProjectDetail: React.FC = () => {
                       </div>
 
                       {githubUsers.length > 0 && (
-                        <motion.div 
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="absolute left-0 right-0 top-full mt-4 bg-bg-card/95 backdrop-blur-3xl border border-white/10 z-[100] rounded-[2rem] overflow-hidden shadow-[0_40px_80px_-20px_rgba(0,0,0,0.8)] p-2"
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="absolute left-0 right-0 top-full mt-4 bg-bg-card/95 backdrop-blur-3xl border border-white/10 z-[100] rounded-[2rem] overflow-hidden shadow-[0_40px_80px_-20px_rgba(0,0,0,0.8)] p-2"
                         >
                           <div className="p-3 border-b border-white/5 bg-white/5 rounded-t-[1.5rem] mb-2">
                             <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest pl-2">Verified GitHub Entities</p>
@@ -887,29 +889,29 @@ const ProjectDetail: React.FC = () => {
                     <div>
                       <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4 ml-1">Access Tier Selection</label>
                       <div className="grid grid-cols-1 gap-3">
-                        {['Manager', 'Developer', 'Viewer'].map((role) => (
+                        {['Manager', 'Developer'].map((role) => (
                           <button
                             key={role}
                             type="button"
                             onClick={() => setInviteRole(role)}
                             className={cn(
-                                "flex items-center justify-between p-5 rounded-2xl border transition-all duration-300 group",
-                                inviteRole === role 
-                                ? "bg-indigo-600/10 border-indigo-500/40 shadow-inner" 
+                              "flex items-center justify-between p-5 rounded-2xl border transition-all duration-300 group",
+                              inviteRole === role
+                                ? "bg-indigo-600/10 border-indigo-500/40 shadow-inner"
                                 : "bg-white/[0.02] border-white/5 hover:bg-white/5 hover:border-white/10"
                             )}
                           >
                             <div className="flex items-center gap-4">
-                                <div className={cn(
-                                    "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all",
-                                    inviteRole === role ? "bg-indigo-600 border-indigo-600 shadow-[0_0_10px_rgba(99,102,241,0.5)]" : "border-white/10"
-                                )}>
-                                    {inviteRole === role && <Check size={12} className="text-white" />}
-                                </div>
-                                <span className={cn("text-xs font-black uppercase tracking-widest transition-colors", inviteRole === role ? "text-white" : "text-slate-500 group-hover:text-slate-300")}>{role}</span>
+                              <div className={cn(
+                                "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all",
+                                inviteRole === role ? "bg-indigo-600 border-indigo-600 shadow-[0_0_10px_rgba(99,102,241,0.5)]" : "border-white/10"
+                              )}>
+                                {inviteRole === role && <Check size={12} className="text-white" />}
+                              </div>
+                              <span className={cn("text-xs font-black uppercase tracking-widest transition-colors", inviteRole === role ? "text-white" : "text-slate-500 group-hover:text-slate-300")}>{role}</span>
                             </div>
                             <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest group-hover:text-slate-400">
-                                {role === 'Manager' ? 'Full Control' : role === 'Developer' ? 'Implementation' : 'ReadOnly'}
+                              {role === 'Manager' ? 'Full Control' : 'Implementation'}
                             </span>
                           </button>
                         ))}
@@ -931,12 +933,12 @@ const ProjectDetail: React.FC = () => {
                       className="flex-[1.5] py-5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-[10px] uppercase tracking-[0.25em] transition-all shadow-[0_20px_40px_-10px_rgba(99,102,241,0.5)] active:scale-95 disabled:opacity-30 disabled:grayscale disabled:cursor-not-allowed group"
                     >
                       {isInviting ? (
-                          <span className="animate-pulse">Broadcasting…</span>
+                        <span className="animate-pulse">Broadcasting…</span>
                       ) : (
-                          <div className="flex items-center justify-center gap-3">
-                              <UserPlus size={18} className="group-hover:rotate-12 transition-transform" />
-                              Dispatch Invitation
-                          </div>
+                        <div className="flex items-center justify-center gap-3">
+                          <UserPlus size={18} className="group-hover:rotate-12 transition-transform" />
+                          Dispatch Invitation
+                        </div>
                       )}
                     </button>
                   </div>
@@ -969,11 +971,11 @@ const ProjectDetail: React.FC = () => {
                 <div className="flex items-center justify-between mb-10 relative">
                   <div className="flex items-center gap-4">
                     <div className="p-4 bg-white/5 rounded-2xl border border-white/10 glow-border shadow-inner">
-                        <Plus size={28} className="text-indigo-400" />
+                      <Plus size={28} className="text-indigo-400" />
                     </div>
                     <div>
-                        <h3 className="font-heading font-black text-white text-2xl tracking-tighter uppercase">Initialize Task</h3>
-                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mt-1">Operational Protocol</p>
+                      <h3 className="font-heading font-black text-white text-2xl tracking-tighter uppercase">Initialize Task</h3>
+                      <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mt-1">Operational Protocol</p>
                     </div>
                   </div>
                   <button
@@ -987,120 +989,120 @@ const ProjectDetail: React.FC = () => {
                 <form onSubmit={handleSubmitTask} className="space-y-8 relative">
                   <div className="space-y-6">
                     <div className="group">
-                        <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4 ml-1">Task Specification</label>
-                        <input
-                            type="text"
-                            required
-                            value={newTaskData.title}
-                            onChange={(e) => setNewTaskData(prev => ({ ...prev, title: e.target.value }))}
-                            placeholder="Identify the core objective..."
-                            className="w-full bg-bg-dark/80 border border-white/5 rounded-2xl p-5 text-sm text-white focus:outline-none focus:border-indigo-500/50 transition-all font-bold placeholder:text-slate-700 uppercase tracking-tight"
-                        />
+                      <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4 ml-1">Task Specification</label>
+                      <input
+                        type="text"
+                        required
+                        value={newTaskData.title}
+                        onChange={(e) => setNewTaskData(prev => ({ ...prev, title: e.target.value }))}
+                        placeholder="Identify the core objective..."
+                        className="w-full bg-bg-dark/80 border border-white/5 rounded-2xl p-5 text-sm text-white focus:outline-none focus:border-indigo-500/50 transition-all font-bold placeholder:text-slate-700 uppercase tracking-tight"
+                      />
                     </div>
 
                     <div>
-                        <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4 ml-1">Contextual Description</label>
-                        <textarea
-                            value={newTaskData.description}
-                            onChange={(e) => setNewTaskData(prev => ({ ...prev, description: e.target.value }))}
-                            placeholder="Synthesize detailed task parameters..."
-                            className="w-full bg-bg-dark/80 border border-white/5 rounded-2xl p-6 text-sm text-white focus:outline-none focus:border-indigo-500/50 min-h-[140px] resize-none transition-all placeholder:text-slate-700 font-medium leading-relaxed"
-                        />
+                      <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4 ml-1">Contextual Description</label>
+                      <textarea
+                        value={newTaskData.description}
+                        onChange={(e) => setNewTaskData(prev => ({ ...prev, description: e.target.value }))}
+                        placeholder="Synthesize detailed task parameters..."
+                        className="w-full bg-bg-dark/80 border border-white/5 rounded-2xl p-6 text-sm text-white focus:outline-none focus:border-indigo-500/50 min-h-[140px] resize-none transition-all placeholder:text-slate-700 font-medium leading-relaxed"
+                      />
                     </div>
 
                     <div className="grid grid-cols-2 gap-8">
-                        <div>
-                            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4 ml-1">Priority Matrix</label>
-                            <div className="flex gap-2">
-                                {['Low', 'Medium', 'High'].map(p => (
-                                    <button
-                                        key={p}
-                                        type="button"
-                                        onClick={() => setNewTaskData(prev => ({ ...prev, priority: p }))}
-                                        className={cn(
-                                            "flex-1 py-3 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all",
-                                            newTaskData.priority === p 
-                                            ? "bg-indigo-600 border-indigo-500 text-white shadow-lg" 
-                                            : "bg-white/5 border-white/5 text-slate-500 hover:bg-white/10"
-                                        )}
-                                    >
-                                        {p}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                        <div className="relative">
-                            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4 ml-1">Execution Node</label>
+                      <div>
+                        <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4 ml-1">Priority Matrix</label>
+                        <div className="flex gap-2">
+                          {['Low', 'Medium', 'High'].map(p => (
                             <button
-                                type="button"
-                                onClick={() => setIsMemberDropdownOpen(!isMemberDropdownOpen)}
-                                className="w-full flex items-center justify-between p-4 bg-bg-dark/80 border border-white/5 rounded-2xl text-xs font-black text-white focus:outline-none focus:border-indigo-500/50 transition-all uppercase tracking-widest"
+                              key={p}
+                              type="button"
+                              onClick={() => setNewTaskData(prev => ({ ...prev, priority: p }))}
+                              className={cn(
+                                "flex-1 py-3 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all",
+                                newTaskData.priority === p
+                                  ? "bg-indigo-600 border-indigo-500 text-white shadow-lg"
+                                  : "bg-white/5 border-white/5 text-slate-500 hover:bg-white/10"
+                              )}
                             >
-                                <div className="flex items-center gap-3">
-                                    {newTaskData.assignee ? (
-                                        <>
-                                            <div className="w-6 h-6 rounded-lg bg-indigo-600/20 flex items-center justify-center text-[10px] font-black text-indigo-400 border border-indigo-500/20">
-                                                {members.find(m => m.user_id === newTaskData.assignee)?.name?.[0] || '?'}
-                                            </div>
-                                            <span>{members.find(m => m.user_id === newTaskData.assignee)?.name || 'Select'}</span>
-                                        </>
-                                    ) : (
-                                        <span className="text-slate-700">Assign Member</span>
-                                    )}
-                                </div>
-                                <ChevronDown size={14} className={cn("text-slate-600 transition-transform", isMemberDropdownOpen && "rotate-180")} />
+                              {p}
                             </button>
-
-                            <AnimatePresence>
-                                {isMemberDropdownOpen && (
-                                    <>
-                                        <div className="fixed inset-0 z-[80]" onClick={() => setIsMemberDropdownOpen(false)} />
-                                        <motion.div
-                                            initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                                            exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                            className="absolute left-0 right-0 bottom-full mb-3 bg-bg-card/95 backdrop-blur-3xl border border-white/10 rounded-[1.5rem] shadow-2xl z-[90] overflow-hidden max-h-48 overflow-y-auto custom-scrollbar p-2"
-                                        >
-                                            {members.map((member: any) => (
-                                                <button
-                                                    key={member.user_id}
-                                                    type="button"
-                                                    onClick={() => {
-                                                        setNewTaskData(prev => ({ ...prev, assignee: member.user_id }));
-                                                        setIsMemberDropdownOpen(false);
-                                                    }}
-                                                    className={cn(
-                                                        "w-full flex items-center justify-between p-3 rounded-xl transition-all group mb-1",
-                                                        newTaskData.assignee === member.user_id ? "bg-indigo-600/20 border border-indigo-500/30" : "hover:bg-white/5 border border-transparent"
-                                                    )}
-                                                >
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-xs font-black text-indigo-400 uppercase">
-                                                            {member.name[0]}
-                                                        </div>
-                                                        <span className="text-xs font-bold text-white uppercase tracking-tight">{member.name}</span>
-                                                    </div>
-                                                    {newTaskData.assignee === member.user_id && <Check size={14} className="text-indigo-400" />}
-                                                </button>
-                                            ))}
-                                        </motion.div>
-                                    </>
-                                )}
-                            </AnimatePresence>
+                          ))}
                         </div>
+                      </div>
+                      <div className="relative">
+                        <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4 ml-1">Execution Node</label>
+                        <button
+                          type="button"
+                          onClick={() => setIsMemberDropdownOpen(!isMemberDropdownOpen)}
+                          className="w-full flex items-center justify-between p-4 bg-bg-dark/80 border border-white/5 rounded-2xl text-xs font-black text-white focus:outline-none focus:border-indigo-500/50 transition-all uppercase tracking-widest"
+                        >
+                          <div className="flex items-center gap-3">
+                            {newTaskData.assignee ? (
+                              <>
+                                <div className="w-6 h-6 rounded-lg bg-indigo-600/20 flex items-center justify-center text-[10px] font-black text-indigo-400 border border-indigo-500/20">
+                                  {members.find(m => m.user_id === newTaskData.assignee)?.name?.[0] || '?'}
+                                </div>
+                                <span>{members.find(m => m.user_id === newTaskData.assignee)?.name || 'Select'}</span>
+                              </>
+                            ) : (
+                              <span className="text-slate-700">Assign Member</span>
+                            )}
+                          </div>
+                          <ChevronDown size={14} className={cn("text-slate-600 transition-transform", isMemberDropdownOpen && "rotate-180")} />
+                        </button>
+
+                        <AnimatePresence>
+                          {isMemberDropdownOpen && (
+                            <>
+                              <div className="fixed inset-0 z-[80]" onClick={() => setIsMemberDropdownOpen(false)} />
+                              <motion.div
+                                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                className="absolute left-0 right-0 bottom-full mb-3 bg-bg-card/95 backdrop-blur-3xl border border-white/10 rounded-[1.5rem] shadow-2xl z-[90] overflow-hidden max-h-48 overflow-y-auto custom-scrollbar p-2"
+                              >
+                                {members.map((member: any) => (
+                                  <button
+                                    key={member.user_id}
+                                    type="button"
+                                    onClick={() => {
+                                      setNewTaskData(prev => ({ ...prev, assignee: member.user_id }));
+                                      setIsMemberDropdownOpen(false);
+                                    }}
+                                    className={cn(
+                                      "w-full flex items-center justify-between p-3 rounded-xl transition-all group mb-1",
+                                      newTaskData.assignee === member.user_id ? "bg-indigo-600/20 border border-indigo-500/30" : "hover:bg-white/5 border border-transparent"
+                                    )}
+                                  >
+                                    <div className="flex items-center gap-3">
+                                      <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-xs font-black text-indigo-400 uppercase">
+                                        {member.name[0]}
+                                      </div>
+                                      <span className="text-xs font-bold text-white uppercase tracking-tight">{member.name}</span>
+                                    </div>
+                                    {newTaskData.assignee === member.user_id && <Check size={14} className="text-indigo-400" />}
+                                  </button>
+                                ))}
+                              </motion.div>
+                            </>
+                          )}
+                        </AnimatePresence>
+                      </div>
                     </div>
 
                     <div>
-                        <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4 ml-1">Temporal Constraint</label>
-                        <div className="relative">
-                            <input
-                                type="date"
-                                value={newTaskData.dueDate}
-                                onChange={(e) => setNewTaskData(prev => ({ ...prev, dueDate: e.target.value }))}
-                                className="w-full bg-bg-dark/80 border border-white/5 rounded-2xl p-4 pl-12 text-sm text-white focus:outline-none focus:border-indigo-500/50 transition-all font-black uppercase tracking-widest"
-                            />
-                            <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600" size={18} />
-                        </div>
+                      <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4 ml-1">Temporal Constraint</label>
+                      <div className="relative">
+                        <input
+                          type="date"
+                          value={newTaskData.dueDate}
+                          onChange={(e) => setNewTaskData(prev => ({ ...prev, dueDate: e.target.value }))}
+                          className="w-full bg-bg-dark/80 border border-white/5 rounded-2xl p-4 pl-12 text-sm text-white focus:outline-none focus:border-indigo-500/50 transition-all font-black uppercase tracking-widest"
+                        />
+                        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600" size={18} />
+                      </div>
                     </div>
                   </div>
 

@@ -17,18 +17,15 @@ const Register: React.FC = () => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      await register({ name, email, password });
-      toast.success('Account created! Welcome to DevSync.');
-      
-      const redirectPath = localStorage.getItem('redirectAfterAuth');
-      if (redirectPath) {
-          localStorage.removeItem('redirectAfterAuth');
-          navigate(redirectPath);
+      await register({ name: name.trim(), email, password });
+      toast.success('Registration successful! Please login.');
+      navigate('/login');
+    } catch (err: any) {
+      if (err.response?.status === 409) {
+        toast.error('Email already registered. Try logging in.');
       } else {
-          navigate('/');
+        toast.error('Registration failed. Please try again.');
       }
-    } catch (err) {
-      toast.error('Registration failed. Please try again.');
     } finally {
       setIsLoading(false);
     }

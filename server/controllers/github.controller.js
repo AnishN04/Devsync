@@ -111,16 +111,21 @@ const syncOrgToDevSync = async (req, res) => {
         if (!existingProject.rows.length) {
             const newProj = await db.query(
                 `INSERT INTO projects
-                 (title, description, owner_id, github_repo_id,
+                 (title, description, owner_id, org_id, github_repo_id,
                   github_repo_name, github_org_name, github_repo_url,
                   tracking_branch, deployment_branch)
-                 VALUES ($1, $2, $3, $4, $5, $6, $7, 'dev', 'main') RETURNING id`,
-                [repo.name, repo.description || '', ownerId,
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'dev', 'main') RETURNING id`,
+                [repo.name, repo.description || '', ownerId, req.user.org_id,
                 String(repo.id), repo.name, repo.owner.login, repo.html_url]
             );
             projectId = newProj.rows[0].id;
         } else {
             projectId = existingProject.rows[0].id;
+            // Ensure organization is synced for existing project records
+            await db.query(
+                'UPDATE projects SET org_id = $1 WHERE id = $2 AND org_id IS NULL',
+                [req.user.org_id, projectId]
+            );
         }
 
         // Ensure syncing user is a member with correct visibility
